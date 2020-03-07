@@ -16,4 +16,4 @@ Built a minimalist, clean todo app which is a hybrid of `capture` (for org-mode)
 
 
 ## Preview
-![First Sketch](/screenshots/view.jpg?raw=true "First sketch") 
+<img src="/screenshots/view.jpg?raw=true" width="250">
