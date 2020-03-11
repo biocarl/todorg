@@ -13,6 +13,19 @@ void main() {
     expect(bullets.first.isTodo, false);
   });
 
+  test('Should stringify primary bullet with higher level', () {
+    int level = 10;
+    String line ="*"*level+" This is a header";
+    OrgConverter converter = new OrgConverter();
+
+    List<Bullet> bullets = converter.parseFromString(line);
+
+    expect(bullets.first.title, "This is a header");
+    expect(bullets.first.isTodo, false);
+    expect(bullets.first.level, 10);
+  });
+
+
   test('Should parse TODO state', () {
     String line = "* TODO This is a header";
 
@@ -34,7 +47,7 @@ void main() {
   });
 
   test('Should stringify primary bullet', () {
-    Bullet bullet = Bullet.create("Heading1", false);
+    Bullet bullet = Bullet.create("Heading1", false,1);
     bullet.isTodo = false;
     List<Bullet> list = List<Bullet>();
     list.add(bullet);
@@ -44,8 +57,19 @@ void main() {
     expect(converter.bulletsToString(list) , "* Heading1");
   });
 
+  test('Should stringify primary bullet with higher level', () {
+    int level = 10;
+    Bullet bullet = Bullet.create("Heading1", false,level);
+    bullet.isTodo = false;
+    List<Bullet> list = List<Bullet>();
+    list.add(bullet);
+
+    OrgConverter converter = new OrgConverter();
+    expect(converter.bulletsToString(list) ,"*"*level+" Heading1");
+  });
+
   test('Should stringify TODO state', () {
-    Bullet bullet = Bullet.create("Heading1", false);
+    Bullet bullet = Bullet.create("Heading1", false,1);
     bullet.isTodo = true;
     List<Bullet> list = List<Bullet>();
     list.add(bullet);
@@ -56,7 +80,7 @@ void main() {
   });
 
   test('Should stringify DONE state', () {
-    Bullet bullet = Bullet.create("Heading1", true);
+    Bullet bullet = Bullet.create("Heading1", true,1);
     bullet.isTodo = true;
     List<Bullet> list = List<Bullet>();
     list.add(bullet);
@@ -67,7 +91,7 @@ void main() {
   });
 
 
-  test('Should parse heading can be multiline', () { //TODO this will be description later
+  test('Should parse heading can be multiline', () {
     String line = "* This is a header\nwith multiline";
 
     OrgConverter converter = new OrgConverter();
@@ -78,8 +102,8 @@ void main() {
     expect(bullets.first.isTodo, false);
   });
 
-  test('Should stringify heading can be multiline', () { //TODO this will be description later
-    Bullet bullet = Bullet.create("Header1 \notherThings", false);
+  test('Should stringify heading can be multiline', () {
+    Bullet bullet = Bullet.create("Header1 \notherThings", false,1);
     bullet.isTodo = true;
     List<Bullet> list = List<Bullet>();
     list.add(bullet);
@@ -88,5 +112,54 @@ void main() {
 
     expect(converter.bulletsToString(list) , "* TODO Header1 \notherThings");
   });
+
+  test('Should stringify two bullets of the same hierachy with multiline', () {
+    Bullet bullet1 = Bullet.create("Header1 \notherThings", false,1);
+    bullet1.isTodo = true;
+
+    Bullet bullet2 = Bullet.create("Header2 \notherThings", false,1);
+    bullet2.isTodo = true;
+
+    List<Bullet> list = List<Bullet>();
+    list.add(bullet1);
+    list.add(bullet2);
+
+    OrgConverter converter = new OrgConverter();
+
+    expect(converter.bulletsToString(list) , "* TODO Header1 \notherThings\n* TODO Header2 \notherThings");
+  });
+
+  test('Should parse two bullets of the same hierachy with multiline', () {
+    String line = "* This is a header 1 \nwith multiline\n* This is a header 2 \nwith multiline";
+
+    OrgConverter converter = new OrgConverter();
+
+    List<Bullet> bullets = converter.parseFromString(line);
+
+    expect(bullets.first.title, "This is a header 1\nwith multiline");
+    expect(bullets.first.isTodo, false);
+    expect(bullets[1].title, "This is a header 2\nwith multiline");
+    expect(bullets[1].isTodo, false);
+  });
+
+  test('Should stringify heading with increasing/decreasing hierachies', () {
+    Bullet bullet1 = Bullet.create("Header1 \notherThings", false,1);
+    bullet1.isTodo = true;
+    Bullet bullet2 = Bullet.create("Header2 \notherThings", false,2);
+    bullet2.isTodo = true;
+    Bullet bullet3 = Bullet.create("Header3 \notherThings", false,1);
+    bullet3.isTodo = true;
+    List<Bullet> list = List<Bullet>();
+    list.add(bullet1);
+    list.add(bullet2);
+    list.add(bullet3);
+
+    OrgConverter converter = new OrgConverter();
+
+    expect(converter.bulletsToString(list) , "* TODO Header1 \notherThings\n** TODO Header2 \notherThings\n* TODO Header3 \notherThings");
+  });
+
+
+
 
 }

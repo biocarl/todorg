@@ -12,9 +12,10 @@ class Bullet {
 
   Bullet();
 
-  Bullet.create(String title, bool isChecked) {
+  Bullet.create(String title, bool isChecked, int level) {
     this._isChecked = isChecked;
     this._title = title;
+    this._level = level;
   }
 
   set title(String title) {

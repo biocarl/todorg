@@ -47,7 +47,8 @@ class OrgConverter {
       if (line.isNotEmpty) {
         if (_hasMatch(line, r"^[\*]+\s")) {
           Bullet bullet = new Bullet();
-          String title = _group(line, r"^[\*]+\s(.+)").group(1);
+          String title = _group(line, r"^([\*]+)\s(.+)").group(2);
+          int level = _group(line, r"^([\*]+)\s(.+)").group(1).length;
           if (title.startsWith(_get(_State.TODO))) {
             title = title.replaceFirst(_get(_State.TODO), "").trim();
             bullet.isTodo = true;
@@ -60,6 +61,7 @@ class OrgConverter {
             bullet.isTodo = false;
           }
           bullet.title = title.trim();
+          bullet.level = level;
           bullets.add(bullet);
         } else {
           //here we assume that ever non header still the previous header continuing as multiline

@@ -69,16 +69,16 @@ class AppState extends State<App> {
     } on FileSystemException {
       print("File does not exist (or is not valid) - adding dummy data");
       setState(() {
-        this.bulletList.add(Bullet.create("Dummy1", false));
-        this.bulletList.add(Bullet.create("Dummy2", true));
-        this.bulletList.add(Bullet.create("Dummy3", false));
-        this.bulletList.add(Bullet.create("Dummy3", false));
-        this.bulletList.add(Bullet.create("Dummy3", false));
-        this.bulletList.add(Bullet.create("Dummy3", false));
-        this.bulletList.add(Bullet.create("Dummy3", false));
-        this.bulletList.add(Bullet.create("Dummy3", false));
-        this.bulletList.add(Bullet.create("Dummy3", false));
-        this.bulletList.add(Bullet.create("Dummy3", false));
+        this.bulletList.add(Bullet.create("Dummy1", false,1));
+        this.bulletList.add(Bullet.create("Dummy2", true,1));
+        this.bulletList.add(Bullet.create("Dummy3", false,1));
+        this.bulletList.add(Bullet.create("Dummy3", false,1));
+        this.bulletList.add(Bullet.create("Dummy3", false,1));
+        this.bulletList.add(Bullet.create("Dummy3", false,1));
+        this.bulletList.add(Bullet.create("Dummy3", false,1));
+        this.bulletList.add(Bullet.create("Dummy3", false,1));
+        this.bulletList.add(Bullet.create("Dummy3", false,1));
+        this.bulletList.add(Bullet.create("Dummy3", false,1));
         this.needsUpdate = false;
       });
     }
@@ -165,7 +165,7 @@ class AppState extends State<App> {
                 if (inputText != null && inputText.isNotEmpty) {
                   //TODO move this to org_handler/converter
                   //Two line breaks means a bullet, otherwise a task
-                  Bullet bullet = Bullet.create(inputText, false);
+                  Bullet bullet = Bullet.create(inputText, false,1);
                   bullet.isTodo = !("\n".allMatches(inputText).length == 2);
                   if (!bullet.isTodo) {
                     bullet.title = bullet.title.trim();
