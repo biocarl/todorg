@@ -183,7 +183,7 @@ class AppState extends State<App> {
                 if (inputText != null && inputText.isNotEmpty) {
                   //TODO move this to org_handler/converter
                   //Two line breaks means a bullet, otherwise a task
-                  Bullet bullet = Bullet.create(inputText, false,1);
+                  Bullet bullet = Bullet.create(inputText, false, 1);
                   bullet.isTodo = !("\n".allMatches(inputText).length == 2);
                   if (!bullet.isTodo) {
                     bullet.title = bullet.title.trim();
@@ -233,113 +233,155 @@ class AppState extends State<App> {
         ];
       }, body: new Builder(builder: (BuildContext context) {
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              child: new RefreshIndicator(
-                  onRefresh: _updateOrgFile,
-                  child: ReorderableListView(
-                    children: <Widget>[
-                      for (final widget in bulletList)
-                        GestureDetector(
-                          key: Key(widget.title),
-                          child: Dismissible(
-                            key: Key(widget.title),
-                            child: widget.isTodo
-                                ? CheckboxListTile(
-                                    value: widget.isChecked,
-                                    title: BulletContainer(
-                                        widget.title, widget.isChecked),
-                                    onChanged: (checkValue) {
-                                      setState(() {
-                                        if (!checkValue) {
-                                          widget.isChecked = false;
-                                        } else {
-                                          widget.isChecked = true;
-                                        }
-                                        this.needsUpdate = true;
-                                      });
-                                    },
-                                  )
-                                : ListTile(
-                                    title: Text(widget.title,
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 22.0))),
-                            background: Container(
-                              child: Icon(Icons.delete),
-                              alignment: Alignment.centerRight,
-                              color: Colors.redAccent,
-                            ),
-                            confirmDismiss: (dismissDirection) {
-                              return showDialog(
-                                  //On Dismissing
-                                  context: context,
-                                  barrierDismissible: true,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: Text("Delete bullet?"),
-                                      actions: <Widget>[
-                                        FlatButton(
-                                            child: Text("Cancel"),
-                                            onPressed: () {
-                                              Navigator.of(context).pop(false);
-                                            }),
-                                        FlatButton(
-                                          child: Text("OK"),
-                                          onPressed: () {
-                                            Navigator.of(context).pop(true);
-                                          },
-                                        ), //OK Button
-                                      ],
-                                    );
-                                  });
-                            },
-                            direction: DismissDirection.endToStart,
-                            movementDuration: const Duration(milliseconds: 200),
-                            onDismissed: (dismissDirection) {
-                              //Delete todo
-                              bulletList.remove(widget);
-                              this.needsUpdate = true;
-                              Fluttertoast.showToast(msg: "Todo Deleted!");
-                            },
-                          ),
-                          onDoubleTap: () {
-                            // Edit existing bullet
-                            _getTextFromUser(context, widget.title)
-                                .then((inputText) {
-                              setState(() {
-                                if (inputText != null && inputText.isNotEmpty) {
-                                  int position = bulletList.indexOf(widget);
-                                  bulletList.remove(widget);
-                                  widget.title = inputText;
-                                  bulletList.insert(position, widget);
-                                  this.needsUpdate = true;
-                                }
-                              });
-                            });
-                          },
-                        )
-                    ],
-                    onReorder: (oldIndex, newIndex) {
-                      setState(() {
-                        if (oldIndex < newIndex) {
-                          newIndex -= 1;
-                        }
-                        var replaceWiget = bulletList.removeAt(oldIndex);
-                        bulletList.insert(newIndex, replaceWiget);
-                        this.needsUpdate = true;
-                      });
-                    },
-                  )),
-            ),
-          ],
-        );
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Expanded(
+                child: new RefreshIndicator(
+                    onRefresh: _updateOrgFile,
+                    child: ReorderableListView(
+                      children: _buildBulletTree(context),
+                      onReorder: (oldIndex, newIndex) {
+                        setState(() {
+                          if (oldIndex < newIndex) {
+                            newIndex -= 1;
+                          }
+                          var replaceWiget = bulletList.removeAt(oldIndex);
+                          bulletList.insert(newIndex, replaceWiget);
+                          bulletList[newIndex].level =
+                              _determineRankBasedOnSibling(newIndex);
+                          this.needsUpdate = true;
+                        });
+                      },
+                    )),
+              ),
+            ]);
       })),
     );
   }
+
+  int _determineRankBasedOnSibling(int index) {
+    //In bounds: Copy from previous node
+    if (index > 0 && index < bulletList.length) {
+      return bulletList[index - 1].level;
+    }
+    // For first element is root sibling
+    return 1;
+  }
+
+  void _loadDebugData() {
+    print("Debug mode");
+    setState(() {
+      _getFileData("assets/test.org").then((file) {
+        OrgConverter orgConverter = new OrgConverter();
+        List<Bullet> bullets = orgConverter.parseFromString(file);
+        setState(() {
+          this.bulletList = bullets;
+          this.needsUpdate = false;
+        });
+      });
+    });
+  }
+
+  void _deleteBullet(Bullet bullet) {
+    setState(() {
+      bulletList.remove(bullet);
+      this.needsUpdate = true;
+      Fluttertoast.showToast(msg: "Todo Deleted!");
+    });
+  }
+
+  _changeBulletLevel(Bullet bullet, int levelDelta) {
+    setState(() {
+      int position = bulletList.indexOf(bullet);
+      bulletList[position].level += levelDelta;
+    });
+    Fluttertoast.showToast(msg: "Promoted");
+  }
+
+  List<Widget> _buildBulletTree(BuildContext context) {
+    List<Widget> list = new List();
+    bool isHidden = false;
+
+    for (final widget in bulletList) {
+//        isHidden = !isHidden;
+
+      list.add(Slidable(
+        key: Key(widget.title),
+        actionPane: SlidableDrawerActionPane(),
+        actionExtentRatio: 0.25,
+        child: BulletContainer(widget, (checkValue) {
+          setState(() {
+            if (!checkValue) {
+              widget.isChecked = false;
+            } else {
+              widget.isChecked = true;
+            }
+            this.needsUpdate = true;
+          });
+        }, isHidden),
+        movementDuration: const Duration(milliseconds: 200),
+        actions: <Widget>[
+          IconSlideAction(
+            caption: 'Promote',
+            color: Colors.grey[100],
+            icon: Icons.format_indent_decrease,
+            onTap: () => _changeBulletLevel(widget, -1),
+          ),
+          IconSlideAction(
+            caption: 'Demote',
+            color: Colors.grey[100],
+            icon: Icons.format_indent_increase,
+            onTap: () => _changeBulletLevel(widget, 1),
+          ),
+        ],
+        dismissal: SlidableDismissal(
+          dismissThresholds: <SlideActionType, double>{
+            SlideActionType.primary: 1.0
+          },
+          child: SlidableDrawerDismissal(),
+          onDismissed: (actionType) {
+            _deleteBullet(widget);
+          },
+        ),
+        secondaryActions: <Widget>[
+          IconSlideAction(
+            caption: 'Archive',
+            color: Colors.green,
+            icon: Icons.archive,
+            onTap: () => Fluttertoast.showToast(msg: "Not supported yet"),
+          ),
+          IconSlideAction(
+            caption: 'Delete',
+            color: Colors.red,
+            icon: Icons.delete,
+            onTap: () => _deleteBullet(widget),
+          ),
+        ],
+      ));
+    }
+    return list;
+  }
 }
+
+//GestureDetector(
+//key: Key(widget.title),
+//onDoubleTap: () {
+//// Edit existing bullet
+//_getTextFromUser(context, widget.title)
+//    .then((inputText) {
+//setState(() {
+//if (inputText != null && inputText.isNotEmpty) {
+//int position = bulletList.indexOf(widget);
+//bulletList.remove(widget);
+//widget.title = inputText;
+//bulletList.insert(position, widget);
+//this.needsUpdate = true;
+//}
+//});
+//});
+//},
+//
 
 class App extends StatefulWidget {
   @override
