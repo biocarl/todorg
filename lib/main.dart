@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:tudorg/org_converter.dart';
 import 'bullet.dart';
 import 'org_handler.dart';
 import 'package:path/path.dart';
@@ -10,6 +11,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'edit_bullet.dart';
 import 'custom_bar.dart';
 import 'bullet_container.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -28,7 +32,11 @@ class AppState extends State<App> {
     super.initState();
     _checkPermissions();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadLastFile();
+      if (kReleaseMode) {
+        _loadLastFile();
+      } else {
+        _loadDebugData();
+      }
     });
   }
 
@@ -69,22 +77,27 @@ class AppState extends State<App> {
     } on FileSystemException {
       print("File does not exist (or is not valid) - adding dummy data");
       setState(() {
-        this.bulletList.add(Bullet.create("Dummy1", false,1));
-        this.bulletList.add(Bullet.create("Dummy2", true,1));
-        this.bulletList.add(Bullet.create("Dummy3", false,1));
-        this.bulletList.add(Bullet.create("Dummy3", false,1));
-        this.bulletList.add(Bullet.create("Dummy3", false,1));
-        this.bulletList.add(Bullet.create("Dummy3", false,1));
-        this.bulletList.add(Bullet.create("Dummy3", false,1));
-        this.bulletList.add(Bullet.create("Dummy3", false,1));
-        this.bulletList.add(Bullet.create("Dummy3", false,1));
-        this.bulletList.add(Bullet.create("Dummy3", false,1));
+        this.bulletList.add(Bullet.create("Dummy1", false, 1));
+        this.bulletList.add(Bullet.create("Dummy2", true, 1));
+        this.bulletList.add(Bullet.create("Dummy3", false, 1));
+        this.bulletList.add(Bullet.create("Dummy3", false, 1));
+        this.bulletList.add(Bullet.create("Dummy3", false, 1));
+        this.bulletList.add(Bullet.create("Dummy3", false, 1));
+        this.bulletList.add(Bullet.create("Dummy3", false, 1));
+        this.bulletList.add(Bullet.create("Dummy3", false, 1));
+        this.bulletList.add(Bullet.create("Dummy3", false, 1));
+        this.bulletList.add(Bullet.create("Dummy3", false, 1));
         this.needsUpdate = false;
       });
     }
   }
 
   Future<void> _updateOrgFile() async {
+    if (!kReleaseMode) {
+      print("Debug mode");
+      _loadDebugData();
+      return;
+    }
     print("Writing to ${this.filePath}");
     OrgFileHandler org = new OrgFileHandler(this.filePath);
     await org.update(this.bulletList);
@@ -109,6 +122,11 @@ class AppState extends State<App> {
     }
 
     return text;
+  }
+
+  /// Assumes the given path is a text-file-asset.
+  Future<String> _getFileData(String path) async {
+    return await rootBundle.loadString(path);
   }
 
   _getNewFile() {
