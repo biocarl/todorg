@@ -3,21 +3,27 @@ import 'package:tudorg/bullet.dart';
 
 class BulletContainer extends StatelessWidget {
   Bullet bullet;
-  Function onChanged;
-  bool isHidden = false;
+  Function onCheckboxChange;
+  Function onFold;
+  Function onEditBullet;
 
-  BulletContainer(Bullet bullet, Function onChanged, bool isHidden) {
+  BulletContainer({Bullet bullet, Function onCheckboxChange, void Function() onFold, void Function() onDoubleTap}) {
     this.bullet = bullet;
-    this.onChanged = onChanged;
-    this.isHidden = isHidden;
+    this.onCheckboxChange = onCheckboxChange;
+    this.onFold = onFold;
+    this.onEditBullet = onDoubleTap;
   }
 
   Widget _widget() {
-    if (this.isHidden) {
+    if (!this.bullet.isVisible) {
       return Container();
     }
     return bullet.isTodo
-        ? CheckboxListTile(
+        ?
+
+    GestureDetector(
+        onPanStart: (details) => this.onEditBullet(),
+        child: CheckboxListTile(
             value: bullet.isChecked,
             title: (bullet.isChecked)
                 ? Text(bullet.title,
@@ -31,11 +37,19 @@ class BulletContainer extends StatelessWidget {
                     bullet.title,
                     style: TextStyle(fontSize: 22.0),
                   ),
-            onChanged: onChanged)
-        : ListTile(
+            onChanged: onCheckboxChange),
+        )
+        :
+
+    GestureDetector(
+        onPanStart: (details) => this.onEditBullet(),
+        onTap: this.onFold,
+        child: ListTile(
             title: Text(bullet.title,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22.0)),
-            trailing: Icon(Icons.more_vert));
+            trailing: Icon(Icons.more_vert))
+    )
+    ;
   }
 
   @override

@@ -41,4 +41,14 @@ class Bullet {
   bool get isTodo {
     return this._isTodo;
   }
+
+
+  //TODO Wrap this into a stateful widget
+  bool _isVisible = true;
+
+  bool get isVisible => _isVisible;
+
+  set isVisible(bool value) {
+    _isVisible = value;
+  }
 }

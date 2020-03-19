@@ -9,11 +9,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'edit_bullet.dart';
-import 'custom_bar.dart';
 import 'bullet_container.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'utils.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -31,123 +30,13 @@ class AppState extends State<App> {
   void initState() {
     super.initState();
     _checkPermissions();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (kReleaseMode) {
-        _loadLastFile();
-      } else {
-        _loadDebugData();
-      }
-    });
-  }
-
-  _checkPermissions() {
-    PermissionHandler().requestPermissions([PermissionGroup.storage]).then((p) {
-      PermissionHandler()
-          .checkPermissionStatus(PermissionGroup.storage)
-          .then((p) => print(p));
-    });
-  }
-
-  _loadLastFile() async {
-    // obtain shared preferences
-    var prefs = await SharedPreferences.getInstance();
-    String filePath = prefs.getString('org-file');
-    if (filePath != null && filePath.isNotEmpty) {
-      this.filePath = filePath;
-      await _parseOrgFile();
-    }
-  }
-
-  _parseOrgFile() async {
-    OrgFileHandler org = new OrgFileHandler(filePath);
-    try {
-      if (basename(filePath).startsWith("_")) {
-        print("Parsing from ${this.filePath}");
-        List<Bullet> parsedBullets = await org.parse();
-
-        print(parsedBullets);
-        setState(() {
-          print("Setting new state");
-          this.bulletList = parsedBullets;
-          this.needsUpdate = false;
-        });
-      } else {
-        throw FileSystemException();
-      }
-    } on FileSystemException {
-      print("File does not exist (or is not valid) - adding dummy data");
-      setState(() {
-        this.bulletList.add(Bullet.create("Dummy1", false, 1));
-        this.bulletList.add(Bullet.create("Dummy2", true, 1));
-        this.bulletList.add(Bullet.create("Dummy3", false, 1));
-        this.bulletList.add(Bullet.create("Dummy3", false, 1));
-        this.bulletList.add(Bullet.create("Dummy3", false, 1));
-        this.bulletList.add(Bullet.create("Dummy3", false, 1));
-        this.bulletList.add(Bullet.create("Dummy3", false, 1));
-        this.bulletList.add(Bullet.create("Dummy3", false, 1));
-        this.bulletList.add(Bullet.create("Dummy3", false, 1));
-        this.bulletList.add(Bullet.create("Dummy3", false, 1));
-        this.needsUpdate = false;
-      });
-    }
-  }
-
-  Future<void> _updateOrgFile() async {
-    if (!kReleaseMode) {
-      print("Debug mode");
-      _loadDebugData();
-      return;
-    }
-    print("Writing to ${this.filePath}");
-    OrgFileHandler org = new OrgFileHandler(this.filePath);
-    await org.update(this.bulletList);
-    setState(() {
-      this.needsUpdate = false;
-    });
-  }
-
-  Future<String> _getTextFromUser(
-      BuildContext context, String existingText) async {
-    final String text = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditBullet(existingText)),
-    );
-
-    if (text != null) {
-      Scaffold.of(context)
-        ..removeCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-            content: Text(
-                "The following note was ${existingText.isEmpty ? "added" : "updated"}: $text")));
-    }
-
-    return text;
-  }
-
-  /// Assumes the given path is a text-file-asset.
-  Future<String> _getFileData(String path) async {
-    return await rootBundle.loadString(path);
-  }
-
-  _getNewFile() {
-    FilePicker.getFile().then((file) {
-      SharedPreferences.getInstance().then((prefs) {
-        if (file != null) {
-          print("Setting org-file ${file.absolute.path}");
-          prefs.setString('org-file', file.absolute.path);
-          this.filePath = file.absolute.path;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _parseOrgFile();
-          });
-        }
-      });
-    });
+    _loadData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: BottomAppBar(
+      bottomNavigationBar:BottomAppBar(
         shape: const CircularNotchedRectangle(),
         child: Container(
           height: 50.0,
@@ -157,14 +46,7 @@ class AppState extends State<App> {
             children: <Widget>[
               IconButton(
                   icon: Icon(Icons.check_circle_outline),
-                  onPressed: () {
-                    setState(() {
-                      this.bulletList = bulletList
-                          .where((element) => !element.isChecked)
-                          .toList();
-                      this.needsUpdate = true;
-                    });
-                  }),
+                  onPressed: () => _deleteCheckedBullets()),
               IconButton(
                   icon: Icon(Icons.search),
                   onPressed: () {
@@ -177,33 +59,22 @@ class AppState extends State<App> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: new Builder(builder: (BuildContext context) {
         return FloatingActionButton(
-          onPressed: () {
-            _getTextFromUser(context, "").then((inputText) {
-              setState(() {
-                if (inputText != null && inputText.isNotEmpty) {
-                  //TODO move this to org_handler/converter
-                  //Two line breaks means a bullet, otherwise a task
-                  Bullet bullet = Bullet.create(inputText, false, 1);
-                  bullet.isTodo = !("\n".allMatches(inputText).length == 2);
-                  if (!bullet.isTodo) {
-                    bullet.title = bullet.title.trim();
-                  }
-                  bulletList.insert(0, bullet);
-                  this.needsUpdate = true;
-                }
-              });
-            });
-          },
+          onPressed: () => _addNewTask(context),
+          splashColor: Colors.red,
           child: Icon(Icons.add_box),
           backgroundColor: Colors.green,
         );
       }),
-      body: NestedScrollView(
+      body:
+      Container(
+          color: Colors.blue,
+          child:
+      NestedScrollView(
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
         return <Widget>[
           SliverAppBar(
             expandedHeight: 200.0,
-            backgroundColor: needsUpdate ? Colors.orangeAccent : null,
+            backgroundColor: needsUpdate ? Colors.orangeAccent : Colors.blue,
             floating: false,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
@@ -243,43 +114,197 @@ class AppState extends State<App> {
                       children: _buildBulletTree(context),
                       onReorder: (oldIndex, newIndex) {
                         setState(() {
+                          int diff = _getIndexOfLastChild(oldIndex);
+
                           if (oldIndex < newIndex) {
-                            newIndex -= 1;
+                            newIndex -= 1 + (diff - oldIndex);
                           }
-                          var replaceWiget = bulletList.removeAt(oldIndex);
-                          bulletList.insert(newIndex, replaceWiget);
-                          bulletList[newIndex].level =
-                              _determineRankBasedOnSibling(newIndex);
+
+                          var replaceWigets = bulletList.sublist(
+                              oldIndex, _getIndexOfLastChild(oldIndex));
+                          bulletList.removeRange(
+                              oldIndex, _getIndexOfLastChild(oldIndex));
+
+                          bulletList.insertAll(newIndex, replaceWigets);
+                          //TODO adapt all ranks relative to new root rank
+                          // bulletList[newIndex].level = _determineNewLevelAfterRelocation(newIndex);
                           this.needsUpdate = true;
                         });
                       },
                     )),
               ),
             ]);
-      })),
+      }))
+
+    )
+
+      ,
     );
   }
 
-  int _determineRankBasedOnSibling(int index) {
+  _loadDebugData() async {
+    print("Debug mode");
+    var bullets = await loadDebugData();
+    setState(() {
+      this.bulletList = bullets;
+      this.needsUpdate = false;
+    });
+  }
+
+  _checkPermissions() {
+    PermissionHandler().requestPermissions([PermissionGroup.storage]).then((p) {
+      PermissionHandler()
+          .checkPermissionStatus(PermissionGroup.storage)
+          .then((p) => print(p));
+    });
+  }
+
+  _loadLastFile() async {
+    // obtain shared preferences
+    var prefs = await SharedPreferences.getInstance();
+    String filePath = prefs.getString('org-file');
+    if (filePath != null && filePath.isNotEmpty) {
+      this.filePath = filePath;
+      await _parseOrgFile();
+    }
+  }
+
+  _parseOrgFile() async {
+    OrgFileHandler org = new OrgFileHandler(filePath);
+    try {
+      if (basename(filePath).startsWith("_")) {
+        print("Parsing from ${this.filePath}");
+        List<Bullet> parsedBullets = await org.parse();
+
+        setState(() {
+          print("Setting new state");
+          this.bulletList = parsedBullets;
+          this.needsUpdate = false;
+        });
+      } else {
+        throw FileSystemException();
+      }
+    } on FileSystemException {
+      print("File does not exist (or is not valid)");
+    }
+  }
+
+  Future<String> _getTextFromUser(
+      BuildContext context, String existingText) async {
+    final String text = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditBullet(existingText)),
+    );
+
+    if (text != null) {
+      Scaffold.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+            content: Text(
+                "The following note was ${existingText.isEmpty ? "added" : "updated"}: $text")));
+    }
+
+    return text;
+  }
+
+  _getNewFile() {
+    FilePicker.getFile().then((file) {
+      SharedPreferences.getInstance().then((prefs) {
+        if (file != null) {
+          print("Setting org-file ${file.absolute.path}");
+          prefs.setString('org-file', file.absolute.path);
+          this.filePath = file.absolute.path;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _parseOrgFile();
+          });
+        }
+      });
+    });
+  }
+
+  Future<void> _updateOrgFile() async {
+    if (!kReleaseMode) {
+      await _loadDebugData();
+      return;
+    }
+
+    print("Writing to ${this.filePath}");
+    OrgFileHandler org = new OrgFileHandler(this.filePath);
+    await org.update(this.bulletList);
+    setState(() {
+      this.needsUpdate = false;
+    });
+  }
+
+  int _determineNewLevelAfterRelocation(int bulletIndex) {
     //In bounds: Copy from previous node
-    if (index > 0 && index < bulletList.length) {
-      return bulletList[index - 1].level;
+    if (bulletIndex > 0 && bulletIndex < bulletList.length) {
+      return bulletList[bulletIndex - 1].level;
     }
     // For first element is root sibling
     return 1;
   }
 
-  void _loadDebugData() {
-    print("Debug mode");
+  int _getIndexOfLastChild(int rootIndex) {
+    int index = rootIndex + 1;
+    while (index + 1 < bulletList.length &&
+        bulletList[index + 1].level > bulletList[rootIndex].level) {
+      index++;
+    }
+    return index;
+  }
+
+  void _foldBullet(Bullet root) {
+    int position = bulletList.indexOf(root);
     setState(() {
-      _getFileData("assets/test.org").then((file) {
-        OrgConverter orgConverter = new OrgConverter();
-        List<Bullet> bullets = orgConverter.parseFromString(file);
-        setState(() {
-          this.bulletList = bullets;
-          this.needsUpdate = false;
-        });
-      });
+      int index = position + 1;
+      while (
+          index < bulletList.length && bulletList[index].level > root.level) {
+        bulletList[index].isVisible = false;
+        index++;
+      }
+    });
+  }
+
+  void _unfoldBullet(Bullet root) {
+    int position = bulletList.indexOf(root);
+    int maxChildLevel =
+        0; //Defines the currently highest bullet level < root.level. Bullets which a level smaller than maxChildLevel are collapsed
+    int index = position + 1;
+
+    setState(() {
+      //Is child
+      while (
+          index < bulletList.length && bulletList[index].level > root.level) {
+        /*
+
+        Determine the direct children of root (possibly with not defined hierarchies in between)
+
+        * Title (Root)
+        **** Title (see 1.)
+          ***** Title (hidden)
+        *** Title (see 3.)
+        *** Title (see 2.)
+
+        1. First child after root is always visible
+        2. A sibling also has to be visible
+        3. A child which is higher up in the hierarchy than the previous highest visible child also has to be visible
+
+        */
+        print(
+            "${maxChildLevel == 0 || bulletList[index].level == maxChildLevel || bulletList[index].level < maxChildLevel}");
+
+        if (maxChildLevel == 0 ||
+            bulletList[index].level == maxChildLevel ||
+            bulletList[index].level < maxChildLevel) {
+          bulletList[index].isVisible = true;
+          maxChildLevel = bulletList[index].level;
+        } // Is indirect child and therefore hidden TODO we can assume that bullet is already hidden by default
+        else if (bulletList[index].level > maxChildLevel) {
+          bulletList[index].isVisible = false;
+        }
+        index++;
+      }
     });
   }
 
@@ -301,38 +326,50 @@ class AppState extends State<App> {
 
   List<Widget> _buildBulletTree(BuildContext context) {
     List<Widget> list = new List();
-    bool isHidden = false;
-
-    for (final widget in bulletList) {
-//        isHidden = !isHidden;
-
+    for (final bullet in bulletList) {
       list.add(Slidable(
-        key: Key(widget.title),
+        key: Key(bullet.title),
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
-        child: BulletContainer(widget, (checkValue) {
-          setState(() {
-            if (!checkValue) {
-              widget.isChecked = false;
-            } else {
-              widget.isChecked = true;
-            }
-            this.needsUpdate = true;
-          });
-        }, isHidden),
+        child: BulletContainer(
+            bullet: bullet,
+            onFold: () => _handleFold(bullet),
+            onDoubleTap: () =>
+                  // Edit existing bullet
+                  _getTextFromUser(context, bullet.title).then((inputText) {
+                    setState(() {
+                      if (inputText != null && inputText.isNotEmpty) {
+                        int position = bulletList.indexOf(bullet);
+                        bulletList.remove(bullet);
+                        bullet.title = inputText;
+                        bulletList.insert(position, bullet);
+                        this.needsUpdate = true;
+                      }
+                    });
+                  }),
+            onCheckboxChange: (checkValue) {
+              setState(() {
+                if (!checkValue) {
+                  bullet.isChecked = false;
+                } else {
+                  bullet.isChecked = true;
+                }
+                this.needsUpdate = true;
+              });
+            }),
         movementDuration: const Duration(milliseconds: 200),
         actions: <Widget>[
           IconSlideAction(
             caption: 'Promote',
             color: Colors.grey[100],
             icon: Icons.format_indent_decrease,
-            onTap: () => _changeBulletLevel(widget, -1),
+            onTap: () => _changeBulletLevel(bullet, -1),
           ),
           IconSlideAction(
             caption: 'Demote',
             color: Colors.grey[100],
             icon: Icons.format_indent_increase,
-            onTap: () => _changeBulletLevel(widget, 1),
+            onTap: () => _changeBulletLevel(bullet, 1),
           ),
         ],
         dismissal: SlidableDismissal(
@@ -340,9 +377,7 @@ class AppState extends State<App> {
             SlideActionType.primary: 1.0
           },
           child: SlidableDrawerDismissal(),
-          onDismissed: (actionType) {
-            _deleteBullet(widget);
-          },
+          onDismissed: (actionType) => _deleteBullet(bullet),
         ),
         secondaryActions: <Widget>[
           IconSlideAction(
@@ -355,33 +390,63 @@ class AppState extends State<App> {
             caption: 'Delete',
             color: Colors.red,
             icon: Icons.delete,
-            onTap: () => _deleteBullet(widget),
+            onTap: () => _deleteBullet(bullet),
           ),
         ],
       ));
     }
     return list;
   }
-}
 
-//GestureDetector(
-//key: Key(widget.title),
-//onDoubleTap: () {
-//// Edit existing bullet
-//_getTextFromUser(context, widget.title)
-//    .then((inputText) {
-//setState(() {
-//if (inputText != null && inputText.isNotEmpty) {
-//int position = bulletList.indexOf(widget);
-//bulletList.remove(widget);
-//widget.title = inputText;
-//bulletList.insert(position, widget);
-//this.needsUpdate = true;
-//}
-//});
-//});
-//},
-//
+  _handleFold(Bullet bullet) {
+    if (bullet == bulletList.last) {
+      return;
+    }
+    int position = bulletList.indexOf(bullet);
+    //Check if bullet is already folded or not
+    if (bulletList[position + 1].isVisible) {
+      print("fold");
+      _foldBullet(bullet);
+    } else {
+      _unfoldBullet(bullet);
+    }
+  }
+
+  void _loadData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (kReleaseMode) {
+        _loadLastFile();
+      } else {
+        await _loadDebugData();
+      }
+    });
+  }
+
+  _deleteCheckedBullets() {
+    setState(() {
+      this.bulletList =
+          bulletList.where((element) => !element.isChecked).toList();
+      this.needsUpdate = true;
+    });
+  }
+
+  _addNewTask(BuildContext context) async {
+      var inputText = await _getTextFromUser(context, "");
+        setState(() {
+          if (inputText != null && inputText.isNotEmpty) {
+            //TODO move this to org_handler/converter
+            //Two line breaks means a bullet, otherwise a task
+            Bullet bullet = Bullet.create(inputText, false, 1);
+            bullet.isTodo = !("\n".allMatches(inputText).length == 2);
+            if (!bullet.isTodo) {
+              bullet.title = bullet.title.trim();
+            }
+            bulletList.insert(0, bullet);
+            this.needsUpdate = true;
+          }
+      });
+  }
+}
 
 class App extends StatefulWidget {
   @override
