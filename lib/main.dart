@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:tudorg/org_converter.dart';
 import 'bullet.dart';
 import 'org_handler.dart';
 import 'package:path/path.dart';
@@ -21,6 +20,13 @@ void main() {
   ));
 }
 
+class App extends StatefulWidget {
+  @override
+  AppState createState() {
+    return AppState();
+  }
+}
+
 class AppState extends State<App> {
   String filePath = "";
   List<Bullet> bulletList = [];
@@ -36,7 +42,7 @@ class AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar:BottomAppBar(
+      bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         child: Container(
           height: 50.0,
@@ -65,80 +71,58 @@ class AppState extends State<App> {
           backgroundColor: Colors.green,
         );
       }),
-      body:
-      Container(
+      body: Container(
           color: Colors.blue,
-          child:
-      NestedScrollView(
-          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-        return <Widget>[
-          SliverAppBar(
-            expandedHeight: 200.0,
-            backgroundColor: needsUpdate ? Colors.orangeAccent : Colors.blue,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              collapseMode: CollapseMode.none,
-              title: Text("${basename(this.filePath)}"),
-              background: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                mainAxisSize: MainAxisSize.min,
+          child: NestedScrollView(headerSliverBuilder:
+              (BuildContext context, bool innerBoxIsScrolled) {
+            return <Widget>[
+              SliverAppBar(
+                expandedHeight: 200.0,
+                backgroundColor:
+                    needsUpdate ? Colors.orangeAccent : Colors.blue,
+                floating: false,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: true,
+                  collapseMode: CollapseMode.none,
+                  title: Text("${basename(this.filePath)}"),
+                  background: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Flexible(
+                          child: Text("TodOrg",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold))),
+                      Flexible(
+                          child: IconButton(
+                        icon: Icon(Icons.arrow_drop_down_circle),
+                        onPressed: _getNewFile,
+                        color: Colors.white,
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+            ];
+          }, body: new Builder(builder: (BuildContext context) {
+            return Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Flexible(
-                      child: Text("TodOrg",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold))),
-                  Flexible(
-                      child: IconButton(
-                    icon: Icon(Icons.arrow_drop_down_circle),
-                    onPressed: _getNewFile,
-                    color: Colors.white,
-                  )),
-                ],
-              ),
-            ),
-          ),
-        ];
-      }, body: new Builder(builder: (BuildContext context) {
-        return Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: new RefreshIndicator(
-                    onRefresh: _updateOrgFile,
-                    child: ReorderableListView(
-                      children: _buildBulletTree(context),
-                      onReorder: (oldIndex, newIndex) {
-                        setState(() {
-                          int diff = _getIndexOfLastChild(oldIndex);
-
-                          if (oldIndex < newIndex) {
-                            newIndex -= 1 + (diff - oldIndex);
-                          }
-
-                          var replaceWigets = bulletList.sublist(
-                              oldIndex, _getIndexOfLastChild(oldIndex));
-                          bulletList.removeRange(
-                              oldIndex, _getIndexOfLastChild(oldIndex));
-
-                          bulletList.insertAll(newIndex, replaceWigets);
-                          //TODO adapt all ranks relative to new root rank
-                          // bulletList[newIndex].level = _determineNewLevelAfterRelocation(newIndex);
-                          this.needsUpdate = true;
-                        });
-                      },
-                    )),
-              ),
-            ]);
-      }))
-
-    )
-
-      ,
+                  Expanded(
+                    child: new RefreshIndicator(
+                        onRefresh: _updateOrgFile,
+                        child: ReorderableListView(
+                          children: _buildBulletTree(context),
+                          onReorder: (oldIndex, newIndex) =>
+                              _moveSubtree(oldIndex, newIndex),
+                        )),
+                  ),
+                ]);
+          }))),
     );
   }
 
@@ -246,9 +230,11 @@ class AppState extends State<App> {
   }
 
   int _getIndexOfLastChild(int rootIndex) {
-    int index = rootIndex + 1;
+    int index = rootIndex;
     while (index + 1 < bulletList.length &&
         bulletList[index + 1].level > bulletList[rootIndex].level) {
+      print("Root: ${bulletList[rootIndex].level}");
+      print("Next: ${bulletList[index + 1].level}");
       index++;
     }
     return index;
@@ -291,9 +277,6 @@ class AppState extends State<App> {
         3. A child which is higher up in the hierarchy than the previous highest visible child also has to be visible
 
         */
-        print(
-            "${maxChildLevel == 0 || bulletList[index].level == maxChildLevel || bulletList[index].level < maxChildLevel}");
-
         if (maxChildLevel == 0 ||
             bulletList[index].level == maxChildLevel ||
             bulletList[index].level < maxChildLevel) {
@@ -334,19 +317,7 @@ class AppState extends State<App> {
         child: BulletContainer(
             bullet: bullet,
             onFold: () => _handleFold(bullet),
-            onDoubleTap: () =>
-                  // Edit existing bullet
-                  _getTextFromUser(context, bullet.title).then((inputText) {
-                    setState(() {
-                      if (inputText != null && inputText.isNotEmpty) {
-                        int position = bulletList.indexOf(bullet);
-                        bulletList.remove(bullet);
-                        bullet.title = inputText;
-                        bulletList.insert(position, bullet);
-                        this.needsUpdate = true;
-                      }
-                    });
-                  }),
+            onDoubleTap: () => _editBullet(context, bullet),
             onCheckboxChange: (checkValue) {
               setState(() {
                 if (!checkValue) {
@@ -431,26 +402,57 @@ class AppState extends State<App> {
   }
 
   _addNewTask(BuildContext context) async {
-      var inputText = await _getTextFromUser(context, "");
-        setState(() {
-          if (inputText != null && inputText.isNotEmpty) {
-            //TODO move this to org_handler/converter
-            //Two line breaks means a bullet, otherwise a task
-            Bullet bullet = Bullet.create(inputText, false, 1);
-            bullet.isTodo = !("\n".allMatches(inputText).length == 2);
-            if (!bullet.isTodo) {
-              bullet.title = bullet.title.trim();
-            }
-            bulletList.insert(0, bullet);
-            this.needsUpdate = true;
-          }
-      });
+    var inputText = await _getTextFromUser(context, "");
+    setState(() {
+      if (inputText != null && inputText.isNotEmpty) {
+        //TODO move this to org_handler/converter
+        //Two line breaks means a bullet, otherwise a task
+        Bullet bullet = Bullet.create(inputText, false, 1);
+        bullet.isTodo = !("\n".allMatches(inputText).length == 2);
+        if (!bullet.isTodo) {
+          bullet.title = bullet.title.trim();
+        }
+        bulletList.insert(0, bullet);
+        this.needsUpdate = true;
+      }
+    });
   }
-}
 
-class App extends StatefulWidget {
-  @override
-  AppState createState() {
-    return AppState();
+  _moveSubtree(int oldIndex, int newIndex) {
+    setState(() {
+      int diff = _getIndexOfLastChild(oldIndex) - oldIndex;
+      if (oldIndex < newIndex) {
+        newIndex -= 1 + diff;
+      }else{
+        print("Other case");
+      }
+
+      var replaceWigets = bulletList.sublist(oldIndex, oldIndex+diff + 1);
+      bulletList.removeRange(oldIndex, oldIndex+diff + 1);
+
+      bulletList.insertAll(newIndex, replaceWigets);
+      //TODO if there is a subtree adapt all ranks relative to new root rank
+      // For now rank is adapted when for single node is moved
+      if(replaceWigets.length == 1) {
+        bulletList[newIndex].level =
+            _determineNewLevelAfterRelocation(newIndex);
+      }
+      this.needsUpdate = true;
+    });
+  }
+
+  _editBullet(BuildContext context, Bullet bullet) {
+    // Edit existing bullet
+    _getTextFromUser(context, bullet.title).then((inputText) {
+      setState(() {
+        if (inputText != null && inputText.isNotEmpty) {
+          int position = bulletList.indexOf(bullet);
+          bulletList.remove(bullet);
+          bullet.title = inputText;
+          bulletList.insert(position, bullet);
+          this.needsUpdate = true;
+        }
+      });
+    });
   }
 }

@@ -42,7 +42,6 @@ class Bullet {
     return this._isTodo;
   }
 
-
   //TODO Wrap this into a stateful widget
   bool _isVisible = true;
 
