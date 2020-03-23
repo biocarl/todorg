@@ -91,26 +91,28 @@ void main() {
   });
 
 
-  test('Should parse heading can be multiline', () {
-    String line = "* This is a header\nwith multiline";
+  test('Should parse bullet with description', () {
+    String line = "* This is a header\nthis is a description";
 
     OrgConverter converter = new OrgConverter();
 
     List<Bullet> bullets = converter.parseFromString(line);
 
-    expect(bullets.first.title, "This is a header\nwith multiline");
+    expect(bullets.first.title, "This is a header");
+    expect(bullets.first.description, "this is a description");
     expect(bullets.first.isTodo, false);
   });
 
-  test('Should stringify heading can be multiline', () {
-    Bullet bullet = Bullet.create("Header1 \notherThings", false,1);
+  test('Should stringify heading with description', () {
+    Bullet bullet = Bullet.create("Header1", false,1);
     bullet.isTodo = true;
+    bullet.description = "with description";
     List<Bullet> list = List<Bullet>();
     list.add(bullet);
 
     OrgConverter converter = new OrgConverter();
 
-    expect(converter.bulletsToString(list) , "* TODO Header1 \notherThings");
+    expect(converter.bulletsToString(list) , "* TODO Header1\nwith description");
   });
 
   test('Should stringify two bullets of the same hierachy with multiline', () {
@@ -129,16 +131,18 @@ void main() {
     expect(converter.bulletsToString(list) , "* TODO Header1 \notherThings\n* TODO Header2 \notherThings");
   });
 
-  test('Should parse two bullets of the same hierachy with multiline', () {
-    String line = "* This is a header 1 \nwith multiline\n* This is a header 2 \nwith multiline";
+  test('Should parse two bullets of the same hierachy with description', () {
+    String line = "* This is a header 1 \nwith description\n* This is a header 2 \nwith description";
 
     OrgConverter converter = new OrgConverter();
 
     List<Bullet> bullets = converter.parseFromString(line);
 
-    expect(bullets.first.title, "This is a header 1\nwith multiline");
+    expect(bullets.first.title, "This is a header 1");
+    expect(bullets.first.description, "with description");
     expect(bullets.first.isTodo, false);
-    expect(bullets[1].title, "This is a header 2\nwith multiline");
+    expect(bullets[1].title, "This is a header 2");
+    expect(bullets[1].description, "with description");
     expect(bullets[1].isTodo, false);
   });
 

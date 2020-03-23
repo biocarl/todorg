@@ -22,17 +22,22 @@ class OrgConverter {
   String bulletsToString(List<Bullet> bullets) {
     String result = "";
     bullets.forEach((bullet) {
-      result += "*" * bullet.level + " ";
-      if (bullet.isTodo) {
-        if (bullet.isChecked) {
-          result += "${_get(_State.DONE)}";
-        } else {
-          result += "${_get(_State.TODO)}";
+      if(bullet.title.isNotEmpty) {
+        result += "*" * bullet.level + " ";
+        if (bullet.isTodo) {
+          if (bullet.isChecked) {
+            result += "${_get(_State.DONE)}";
+          } else {
+            result += "${_get(_State.TODO)}";
+          }
+          result += " ";
         }
-        result += " ";
+        result += bullet.title;
+        result += "\n";
       }
-      result += bullet.title;
-      result += "\n";
+      if(bullet.description.isNotEmpty){
+        result += bullet.description + "\n";
+      }
     });
     return result.trim();
   }
@@ -47,8 +52,8 @@ class OrgConverter {
       if (line.isNotEmpty) {
         if (_hasMatch(line, r"^[\*]+\s")) {
           Bullet bullet = new Bullet();
-          String title = _group(line, r"^([\*]+)\s(.+)").group(2);
-          int level = _group(line, r"^([\*]+)\s(.+)").group(1).length;
+          String title = _group(line, r"^([\*]+)\s(.*)").group(2);
+          int level = _group(line, r"^([\*]+)\s(.*)").group(1).length;
           if (title.startsWith(_get(_State.TODO))) {
             title = title.replaceFirst(_get(_State.TODO), "").trim();
             bullet.isTodo = true;
@@ -64,14 +69,14 @@ class OrgConverter {
           bullet.level = level;
           bullets.add(bullet);
         } else {
-          //here we assume that ever non header still the previous header continuing as multiline
-          if (bullets.last != null) {
-            bullets.last.title += "\n${line}";
+          if (bullets.isNotEmpty) {
+            bullets.last.description += (bullets.last.description.isNotEmpty) ? "\n" : "";
+            bullets.last.description +="${line}";
           } else {
-            // no previous header means creating a non-todo bullet
+            // no previous header means creating a bullet (which will be later the Notebook description)
             Bullet bullet = new Bullet();
             bullet.isTodo = false;
-            bullet.title = line;
+            bullet.description= line;
             bullets.add(bullet);
           }
         }

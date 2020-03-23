@@ -64,6 +64,8 @@ class _BulletListState extends State<BulletList> {
         actionExtentRatio: 0.25,
         child: BulletContainer(
             bullet: bullet,
+            isCollapsed: _isCollapsed(bullet),
+            hasChildren:  _hasChildren(bullet),
             onFold: () => _handleFold(bullet),
             onDoubleTap: () => _editBullet(context, bullet),
             onCheckboxChange: (checkValue) {
@@ -147,6 +149,24 @@ class _BulletListState extends State<BulletList> {
     }
     // For first element is root sibling
     return 1;
+  }
+
+  bool _hasChildren(Bullet bullet){
+    int position = _bulletList.indexOf(bullet);
+    if(position == _bulletList.length -1){
+      return false;
+    }
+
+    return bullet.level < _bulletList[position+1].level;
+  }
+
+
+  bool _isCollapsed(Bullet bullet) {
+    if(_hasChildren(bullet)){
+      int position = _bulletList.indexOf(bullet);
+      return !(_bulletList[position+1].isVisible);
+    }
+    return false;
   }
 
   int _getIndexOfLastChild(int rootIndex) {
@@ -255,4 +275,5 @@ class _BulletListState extends State<BulletList> {
       });
     });
   }
+
 }

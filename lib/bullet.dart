@@ -1,14 +1,9 @@
 class Bullet {
-  String _title;
+  String _title = "";
+  String _description = "";
   bool _isChecked = false;
   bool _isTodo = true;
   int _level = 1;
-
-  int get level => _level;
-
-  set level(int value) {
-    _level = value;
-  }
 
   Bullet();
 
@@ -49,5 +44,17 @@ class Bullet {
 
   set isVisible(bool value) {
     _isVisible = value;
+  }
+
+  int get level => _level;
+
+  set level(int value) {
+    _level = value;
+  }
+
+  String get description => _description;
+
+  set description(String value) {
+    _description = value;
   }
 }

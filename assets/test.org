@@ -1,7 +1,15 @@
+This is a notebook description
+This file aims to contain all features of the currently covered org-mode specification.
+
+* Header 0
 * Header 1
 **** Header 1.1
+This is a description and should be seen as such.
+Here we see a multiline description.
+How does this look like?
 ***** TODO Task 1.1.1
 ** TODO Task1
+This is a description and should not be shown for now.
 ** TODO Task2
 ** TODO Task3
 * Header 2

@@ -54,11 +54,6 @@ class _EditBulletState extends State<EditBullet> {
     });
   }
 
-  method() {
-    inputTextController.dispose();
-    inputTextController.clear();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
