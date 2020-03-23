@@ -155,7 +155,6 @@ class AppState extends State<App> {
         List<Bullet> parsedBullets = await org.parse();
 
         setState(() {
-          print("Setting new state");
           this.bulletList = parsedBullets;
           this.needsUpdate = false;
         });

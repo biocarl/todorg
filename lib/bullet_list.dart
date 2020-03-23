@@ -153,8 +153,6 @@ class _BulletListState extends State<BulletList> {
     int index = rootIndex;
     while (index + 1 < _bulletList.length &&
         _bulletList[index + 1].level > _bulletList[rootIndex].level) {
-      print("Root: ${_bulletList[rootIndex].level}");
-      print("Next: ${_bulletList[index + 1].level}");
       index++;
     }
     return index;
@@ -213,9 +211,11 @@ class _BulletListState extends State<BulletList> {
 
   void _deleteBullet(Bullet bullet) {
     setState(() {
-      _bulletList.remove(bullet);
+      int position = _bulletList.indexOf(bullet);
+      int deleteToIndex = _getIndexOfLastChild(position);
+      _bulletList.removeRange(position, deleteToIndex + 1);
       this.widget._onUpdate();
-      Fluttertoast.showToast(msg: "Todo Deleted!");
+      Fluttertoast.showToast(msg: "Bullet Deleted!");
     });
   }
 

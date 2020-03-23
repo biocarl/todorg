@@ -46,7 +46,6 @@ class _EditBulletState extends State<EditBullet> {
   void initState() {
     super.initState();
     this.inputTextController.addListener(() {
-      print(this.inputTextController.text);
       if (this.inputTextController.text.contains("\n")) {
         setState(() {
           this.isTitle = false;
