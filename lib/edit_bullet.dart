@@ -1,5 +1,23 @@
 import 'package:flutter/material.dart';
 
+Future<String> getTextFromUser(
+    BuildContext context, String existingText) async {
+  final String text = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => EditBullet(existingText)),
+  );
+
+  if (text != null) {
+    Scaffold.of(context)
+      ..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+          content: Text(
+              "The following note was ${existingText.isEmpty ? "added" : "updated"}: $text")));
+  }
+
+  return text;
+}
+
 class EditBullet extends StatefulWidget {
   String existingString;
 
