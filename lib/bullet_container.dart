@@ -52,13 +52,19 @@ class BulletContainer extends StatelessWidget {
             child: ListTile(
               title: Text(bullet.title,
                   style: _getStyle()) ,
-//              trailing: Icon(Icons.more_vert),
-              subtitle: (bullet.description.isNotEmpty)
-                  ? Padding(
+              trailing: (hasChildren) ? Icon((isCollapsed) ? Icons.arrow_drop_down : Icons.arrow_left) : null,
+              subtitle: hasChildren || bullet.description.isNotEmpty ?
+              Padding(
                       padding: EdgeInsets.only(left: 5, top: 5, bottom: 5),
-                      child: Text(bullet.description))
-                  : null,
-            ));
+                      child: Text(
+                          (bullet.description.isNotEmpty && !isCollapsed) ?
+                          bullet.description : "",
+                      style: TextStyle(fontSize: 15),
+                      )) : null,
+              dense: true,
+              isThreeLine: hasChildren || bullet.description.isNotEmpty,
+            )
+    );
   }
 
   @override
@@ -70,15 +76,6 @@ class BulletContainer extends StatelessWidget {
   }
 
   TextStyle _getStyle() {
-    if(hasChildren){
-      if(isCollapsed){
-        return TextStyle(fontWeight: FontWeight.w400, fontSize: 22.0);
-      }else{
-        return TextStyle(fontWeight: FontWeight.w300,fontStyle: FontStyle.italic, fontSize: 22.0);
-      }
-    }else{
-      return TextStyle(fontWeight: FontWeight.w300, fontSize: 22.0);
-    }
-
+      return TextStyle(fontWeight: FontWeight.w300, fontSize: 20.0);
   }
 }
