@@ -124,12 +124,16 @@ class _BulletListState extends State<BulletList> {
 
   _moveSubtree(int oldIndex, int newIndex) {
     setState(() {
+      print("old: ${oldIndex}, new: ${newIndex}");
       int diff = _getIndexOfLastChild(oldIndex) - oldIndex;
+      print(diff);
       if (oldIndex < newIndex) {
         newIndex -= 1 + diff;
       } else {
         print("Other case");
       }
+
+      print("old: ${oldIndex}, new: ${newIndex}");
 
       var replaceWigets = _bulletList.sublist(oldIndex, oldIndex + diff + 1);
       _bulletList.removeRange(oldIndex, oldIndex + diff + 1);

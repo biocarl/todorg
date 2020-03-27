@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:tudorg/bullet.dart';
 import 'package:tudorg/theme.dart';
 
@@ -57,6 +58,7 @@ class BulletContainer extends StatelessWidget {
         : GestureDetector(
             onPanStart: (details) => this.onEditBullet(),
             onTap: this.onFold,
+            onLongPress: (hasChildren && !isCollapsed) ? () => Fluttertoast.showToast(msg: "Collapse before moving!") : null,
             child:ListTile(
               title: Text(bullet.title, style: _getStyle()),
               trailing: (hasChildren)
