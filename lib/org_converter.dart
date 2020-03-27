@@ -22,7 +22,7 @@ class OrgConverter {
   String bulletsToString(List<Bullet> bullets) {
     String result = "";
     bullets.forEach((bullet) {
-      if(bullet.title.isNotEmpty) {
+      if (bullet.title.isNotEmpty) {
         result += "*" * bullet.level + " ";
         if (bullet.isTodo) {
           if (bullet.isChecked) {
@@ -35,7 +35,7 @@ class OrgConverter {
         result += bullet.title;
         result += "\n";
       }
-      if(bullet.description.isNotEmpty){
+      if (bullet.description.isNotEmpty) {
         result += bullet.description + "\n";
       }
     });
@@ -70,13 +70,14 @@ class OrgConverter {
           bullets.add(bullet);
         } else {
           if (bullets.isNotEmpty) {
-            bullets.last.description += (bullets.last.description.isNotEmpty) ? "\n" : "";
-            bullets.last.description +="${line}";
+            bullets.last.description +=
+                (bullets.last.description.isNotEmpty) ? "\n" : "";
+            bullets.last.description += "${line}";
           } else {
             // no previous header means creating a bullet (which will be later the Notebook description)
             Bullet bullet = new Bullet();
             bullet.isTodo = false;
-            bullet.description= line;
+            bullet.description = line;
             bullets.add(bullet);
           }
         }

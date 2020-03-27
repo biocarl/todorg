@@ -36,30 +36,30 @@ class BulletContainer extends StatelessWidget {
     return bullet.isTodo
         ? GestureDetector(
             onPanStart: (details) => this.onEditBullet(),
-            child:
-              CheckboxListTile(
-                  dense: true,
-                  value: bullet.isChecked,
-                  title: (bullet.isChecked)
-                      ? Text(bullet.title,
-                          style: TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                            fontStyle: FontStyle.italic,
-                            fontSize: 22.0,
-                            fontWeight: FontWeight.w300,
-                            color: Colors.grey[600],
-                          ))
-                      : Text(bullet.title,
-                          style: TextStyle(
-                              fontSize: FONT_TITLE,
-                              fontWeight: FontWeight.w300)),
-                  onChanged: onCheckboxChange),
-            )
+            child: CheckboxListTile(
+                dense: true,
+                value: bullet.isChecked,
+                title: (bullet.isChecked)
+                    ? Text(bullet.title,
+                        style: TextStyle(
+                          decoration: TextDecoration.lineThrough,
+                          fontStyle: FontStyle.italic,
+                          fontSize: 22.0,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey[600],
+                        ))
+                    : Text(bullet.title,
+                        style: TextStyle(
+                            fontSize: FONT_TITLE, fontWeight: FontWeight.w300)),
+                onChanged: onCheckboxChange),
+          )
         : GestureDetector(
             onPanStart: (details) => this.onEditBullet(),
             onTap: this.onFold,
-            onLongPress: (hasChildren && !isCollapsed) ? () => Fluttertoast.showToast(msg: "Collapse before moving!") : null,
-            child:ListTile(
+            onLongPress: (hasChildren && !isCollapsed)
+                ? () => Fluttertoast.showToast(msg: "Collapse before moving!")
+                : null,
+            child: ListTile(
               title: Text(bullet.title, style: _getStyle()),
               trailing: (hasChildren)
                   ? Icon(
@@ -67,7 +67,8 @@ class BulletContainer extends StatelessWidget {
                   : null,
               subtitle: hasChildren || bullet.description.isNotEmpty
                   ? Padding(
-                      padding: EdgeInsets.only(left: 2.5, top: 2.5, bottom: 2.5),
+                      padding:
+                          EdgeInsets.only(left: 2.5, top: 2.5, bottom: 2.5),
                       child: Text(
                         (bullet.description.isNotEmpty && !isCollapsed)
                             ? bullet.description
@@ -83,25 +84,19 @@ class BulletContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget widget = _widget();
-    if(widget == null){
+    if (widget == null) {
       return Container();
     }
-    return
-      Container(
-        color: getMainColor(400+100 * (this.bullet.level-1)),
-          child:
-
-          Padding(
-            padding: EdgeInsets.only(left:4.0*this.bullet.level),
-              child: Card(
-      margin: EdgeInsets.only(top: 2.5, bottom: (isCollapsed || !hasChildren) ? 5 : 0),
-        color: getMainColor(400+100 * this.bullet.level),
+    return Container(
+        color: getMainColor(400 + 100 * (this.bullet.level - 1)),
+        child: Padding(
+            padding: EdgeInsets.only(left: 4.0 * this.bullet.level),
+            child: Card(
+                margin: EdgeInsets.only(
+                    top: 2.5, bottom: (isCollapsed || !hasChildren) ? 5 : 0),
+                color: getMainColor(400 + 100 * this.bullet.level),
 //        color: Colors.blue[400].withAlpha(255 - 30 * this.bullet.level),
-        child: widget
-
-          ))
-      )
-    ;
+                child: widget)));
   }
 
   TextStyle _getStyle() {

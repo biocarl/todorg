@@ -32,7 +32,7 @@ class _BulletListState extends State<BulletList> {
   @override
   void didUpdateWidget(BulletList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if(widget?._bulletList != null && _bulletList != widget._bulletList){
+    if (widget?._bulletList != null && _bulletList != widget._bulletList) {
       _bulletList = widget._bulletList;
       _unfoldFromRoot();
     }
@@ -68,7 +68,7 @@ class _BulletListState extends State<BulletList> {
         child: BulletContainer(
             bullet: bullet,
             isCollapsed: _isCollapsed(bullet),
-            hasChildren:  _hasChildren(bullet),
+            hasChildren: _hasChildren(bullet),
             onFold: () => _handleFold(bullet),
             onDoubleTap: () => _editBullet(context, bullet),
             onCheckboxChange: (checkValue) {
@@ -158,9 +158,9 @@ class _BulletListState extends State<BulletList> {
     return 1;
   }
 
-  bool _hasChildren(Bullet bullet){
+  bool _hasChildren(Bullet bullet) {
     int position = _bulletList.indexOf(bullet);
-    if(position == _bulletList.length -1){
+    if (position == _bulletList.length - 1) {
       return false;
     }
 
@@ -168,14 +168,13 @@ class _BulletListState extends State<BulletList> {
 //      return true;
 //    }
 
-    return bullet.level < _bulletList[position+1].level;
+    return bullet.level < _bulletList[position + 1].level;
   }
 
-
   bool _isCollapsed(Bullet bullet) {
-    if(_hasChildren(bullet)){
+    if (_hasChildren(bullet)) {
       int position = _bulletList.indexOf(bullet);
-      return !(_bulletList[position+1].isVisible);
+      return !(_bulletList[position + 1].isVisible);
     }
     return false;
   }
@@ -203,23 +202,24 @@ class _BulletListState extends State<BulletList> {
 
   void _unfoldBullet(Bullet root) {
     int position = _bulletList.indexOf(root);
-    _unfoldByIndex(position,root.level);
+    _unfoldByIndex(position, root.level);
   }
 
   //Showing only highest hierarchy (on startup)
-  void _unfoldFromRoot(){
-    _unfoldByIndex(-1,0);
+  void _unfoldFromRoot() {
+    _unfoldByIndex(-1, 0);
   }
 
   //Unfold the next hierarchy coming after the bullet with position
-  void _unfoldByIndex(int position, int rootLevel){
-    int maxChildLevel = 0; //Defines the currently highest bullet level < root.level. Bullets which a level smaller than maxChildLevel are collapsed
+  void _unfoldByIndex(int position, int rootLevel) {
+    int maxChildLevel =
+        0; //Defines the currently highest bullet level < root.level. Bullets which a level smaller than maxChildLevel are collapsed
     int index = position + 1;
 
     setState(() {
       //Is child
       while (
-      index < _bulletList.length && _bulletList[index].level >  rootLevel) {
+          index < _bulletList.length && _bulletList[index].level > rootLevel) {
         /*
 
         Determine the direct children of root (possibly with not defined hierarchies in between)
@@ -247,7 +247,6 @@ class _BulletListState extends State<BulletList> {
         index++;
       }
     });
-
   }
 
   void _deleteBullet(Bullet bullet) {
@@ -296,5 +295,4 @@ class _BulletListState extends State<BulletList> {
       });
     });
   }
-
 }

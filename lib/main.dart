@@ -151,13 +151,13 @@ class AppState extends State<App> {
   _parseFile() async {
     OrgFileHandler org = new OrgFileHandler(filePath);
     try {
-        print("Parsing from ${this.filePath}");
-        List<Bullet> parsedBullets = await org.parse();
+      print("Parsing from ${this.filePath}");
+      List<Bullet> parsedBullets = await org.parse();
 
-        setState(() {
-          this.bulletList = parsedBullets;
-          this.needsUpdate = false;
-        });
+      setState(() {
+        this.bulletList = parsedBullets;
+        this.needsUpdate = false;
+      });
     } on FileSystemException {
       print("File does not exist (or is not valid)");
     }
