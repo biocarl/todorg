@@ -211,16 +211,18 @@ class AppState extends State<App> {
   }
 
   _addNewTask(BuildContext context) async {
-    var inputText = await getTextFromUser(context, "");
+    Bullet bullet = Bullet.create("", false, 1);
+    var bulletEdited = await getBulletFromUser(context, bullet);
     setState(() {
-      if (inputText != null && inputText.isNotEmpty) {
-        //Two line breaks means a bullet, otherwise a task
-        Bullet bullet = Bullet.create(inputText, false, 1);
-        bullet.isTodo = !("\n".allMatches(inputText).length == 2);
-        if (!bullet.isTodo) {
-          bullet.title = bullet.title.trim();
+      if (bulletEdited != null) {
+        // TODO migrate this into editBullet widget: Two line breaks means a bullet, otherwise a task
+        bulletEdited.isTodo =
+            !("\n".allMatches(bulletEdited.title).length == 2);
+        if (!bulletEdited.isTodo) {
+          bulletEdited.title = bulletEdited.title.trim();
         }
-        bulletList.insert(0, bullet);
+
+        bulletList.insert(0, bulletEdited);
         this.needsUpdate = true;
       }
     });

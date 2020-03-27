@@ -70,7 +70,7 @@ class _BulletListState extends State<BulletList> {
             isCollapsed: _isCollapsed(bullet),
             hasChildren: _hasChildren(bullet),
             onFold: () => _handleFold(bullet),
-            onDoubleTap: () => _editBullet(context, bullet),
+            onEditBullet: () => _editBullet(context, bullet),
             onCheckboxChange: (checkValue) {
               setState(() {
                 if (!checkValue) {
@@ -281,18 +281,15 @@ class _BulletListState extends State<BulletList> {
     }
   }
 
-  _editBullet(BuildContext context, Bullet bullet) {
-    // Edit existing bullet
-    getTextFromUser(context, bullet.title).then((inputText) {
+  _editBullet(BuildContext context, Bullet bullet) async {
+    Bullet bulletEdited = await getBulletFromUser(context, bullet);
+    if (bulletEdited != null && bulletEdited != bullet) {
       setState(() {
-        if (inputText != null && inputText.isNotEmpty) {
-          int position = _bulletList.indexOf(bullet);
-          _bulletList.remove(bullet);
-          bullet.title = inputText;
-          _bulletList.insert(position, bullet);
-          this.widget._onUpdate();
-        }
+        int position = _bulletList.indexOf(bullet);
+        _bulletList.remove(bullet);
+        _bulletList.insert(position, bulletEdited);
+        this.widget._onUpdate();
       });
-    });
+    }
   }
 }

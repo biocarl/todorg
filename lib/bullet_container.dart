@@ -18,13 +18,13 @@ class BulletContainer extends StatelessWidget {
       {Bullet bullet,
       Function onCheckboxChange,
       void Function() onFold,
-      void Function() onDoubleTap,
+      void Function() onEditBullet,
       bool isCollapsed,
       bool hasChildren}) {
     this.bullet = bullet;
     this.onCheckboxChange = onCheckboxChange;
     this.onFold = onFold;
-    this.onEditBullet = onDoubleTap;
+    this.onEditBullet = onEditBullet;
     this.isCollapsed = isCollapsed;
     this.hasChildren = hasChildren;
   }

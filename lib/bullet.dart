@@ -13,6 +13,16 @@ class Bullet {
     this._level = level;
   }
 
+  static Bullet clone(Bullet toClone) {
+    Bullet bullet = Bullet();
+    bullet._title = toClone._title;
+    bullet._description = toClone._description;
+    bullet._isChecked = toClone._isChecked;
+    bullet._isTodo = toClone._isTodo;
+    bullet._level = toClone._level;
+    return bullet;
+  }
+
   set title(String title) {
     this._title = title;
   }

@@ -1,43 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:tudorg/bullet.dart';
 
-Future<String> getTextFromUser(
-    BuildContext context, String existingText) async {
-  final String text = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => EditBullet(existingText)),
-  );
+Future<Bullet> getBulletFromUser(BuildContext context, Bullet bullet) async {
+  final Bullet bulletEdited = await Navigator.push(
+      context, MaterialPageRoute(builder: (context) => EditBullet(bullet)));
 
-  if (text != null) {
-    Scaffold.of(context)
-      ..removeCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-          content: Text(
-              "The following note was ${existingText.isEmpty ? "added" : "updated"}: $text")));
-  }
+  // TODO output something meaningful here
+//  if (text != null) {
+//    Scaffold.of(context)
+//      ..removeCurrentSnackBar()
+//      ..showSnackBar(SnackBar(
+//          content: Text(
+//              "The following note was ${existingBullet ? "added" : "updated"}: $text")));
+//  }
 
-  return text;
+  return bulletEdited;
 }
 
 class EditBullet extends StatefulWidget {
-  String existingString;
+  Bullet bullet;
 
-  EditBullet(this.existingString);
+  EditBullet(this.bullet);
 
   @override
   _EditBulletState createState() {
-    return _EditBulletState(this.existingString);
+    return _EditBulletState(this.bullet);
   }
 }
 
 class _EditBulletState extends State<EditBullet> {
   var inputTextController = TextEditingController();
-  String existingString;
+  Bullet bullet;
   bool isTitle = true;
 
-  _EditBulletState(String existingString) {
-    this.existingString = existingString;
-    if (this.existingString.isNotEmpty) {
-      this.inputTextController.text = this.existingString;
+  _EditBulletState(Bullet bullet) {
+    this.bullet = bullet;
+    if (this.bullet.title.isNotEmpty) {
+      this.inputTextController.text = bullet.title;
       this.isTitle = false;
     }
   }
@@ -97,7 +96,9 @@ class _EditBulletState extends State<EditBullet> {
 //                ),
                   FlatButton(
                     onPressed: () {
-                      Navigator.pop(context, inputTextController.text);
+                      Bullet bulletEdited = Bullet.clone(bullet);
+                      bulletEdited.title = inputTextController.text;
+                      Navigator.pop(context, bulletEdited);
                     },
                     child: Text('Save',
                         style: new TextStyle(

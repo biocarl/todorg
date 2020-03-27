@@ -22,17 +22,17 @@ class OrgConverter {
   String bulletsToString(List<Bullet> bullets) {
     String result = "";
     bullets.forEach((bullet) {
-        result += "*" * bullet.level + " ";
-        if (bullet.isTodo) {
-          if (bullet.isChecked) {
-            result += "${_get(_State.DONE)}";
-          } else {
-            result += "${_get(_State.TODO)}";
-          }
-          result += " ";
+      result += "*" * bullet.level + " ";
+      if (bullet.isTodo) {
+        if (bullet.isChecked) {
+          result += "${_get(_State.DONE)}";
+        } else {
+          result += "${_get(_State.TODO)}";
         }
-        result += bullet.title;
-        result += "\n";
+        result += " ";
+      }
+      result += bullet.title;
+      result += "\n";
       if (bullet.description.isNotEmpty) {
         result += bullet.description + "\n";
       }
@@ -48,7 +48,8 @@ class OrgConverter {
 
     raw.split("\n").forEach((line) {
       if (line.isNotEmpty) {
-        if (_hasMatch(line, r"^[\*]+[\s]") || _hasMatch(line,r"^[\*]+$") ) {  //TODO \b is not possible in dart regex?
+        if (_hasMatch(line, r"^[\*]+[\s]") || _hasMatch(line, r"^[\*]+$")) {
+          //TODO \b is not possible in dart regex?
           Bullet bullet = new Bullet();
           String title = _group(line, r"^([\*]+)[\s]*(.*)").group(2);
           int level = _group(line, r"^([\*]+)[\s]*(.*)").group(1).length;
