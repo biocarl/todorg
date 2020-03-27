@@ -13,7 +13,32 @@ void main() {
     expect(bullets.first.isTodo, false);
   });
 
-  test('Should stringify primary bullet with higher level', () {
+  test('Should parse empty bullet', () {
+    String line = "* This is a header\n*";
+    OrgConverter converter = new OrgConverter();
+
+    List<Bullet> bullets = converter.parseFromString(line);
+
+    expect(bullets.first.title, "This is a header");
+    expect(bullets.first.isTodo, false);
+    expect(bullets[1].title, "");
+  });
+
+  test('Should stringify empty bullet', () {
+    Bullet bullet1 = Bullet.create("Heading1", false,1);
+    bullet1.isTodo = false;
+    Bullet bullet2 = Bullet.create("", false,1);
+    bullet2.isTodo = false;
+    List<Bullet> list = List<Bullet>();
+    list.add(bullet1);
+    list.add(bullet2);
+
+    OrgConverter converter = new OrgConverter();
+
+    expect(converter.bulletsToString(list) , "* Heading1\n*");
+  });
+
+  test('Should parse primary bullet with higher level', () {
     int level = 10;
     String line ="*"*level+" This is a header";
     OrgConverter converter = new OrgConverter();

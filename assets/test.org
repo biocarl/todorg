@@ -11,6 +11,7 @@ How does this look like?
 ** TODO Task1
 This is a description and should not be shown for now.
 ** TODO Task2
+**
 ** TODO Task3
 * Header 2
 ** TODO Task1
