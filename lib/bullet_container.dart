@@ -69,12 +69,16 @@ class BulletContainer extends StatelessWidget {
                   ? Padding(
                       padding:
                           EdgeInsets.only(left: 2.5, top: 2.5, bottom: 2.5),
-                      child: Text(
-                        (bullet.description.isNotEmpty && !isCollapsed)
-                            ? bullet.description
-                            : "",
+                      child:
+                      (bullet.description.isNotEmpty && !isCollapsed)
+                          ?
+                      SelectableText(
+                          bullet.description,
                         style: TextStyle(fontSize: FONT_DESCRIPTION),
-                      ))
+                      )
+                      : Text(""),
+
+              )
                   : null,
               dense: true,
               isThreeLine: hasChildren || bullet.description.isNotEmpty,
