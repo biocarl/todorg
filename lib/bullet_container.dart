@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tudorg/bullet.dart';
+import 'package:tudorg/theme.dart';
 
 class BulletContainer extends StatelessWidget {
   Bullet bullet;
@@ -8,12 +10,16 @@ class BulletContainer extends StatelessWidget {
   Function onEditBullet;
   bool isCollapsed;
   bool hasChildren;
+  double FONT_TITLE = 20;
+  double FONT_DESCRIPTION = 18;
 
   BulletContainer(
       {Bullet bullet,
       Function onCheckboxChange,
       void Function() onFold,
-      void Function() onDoubleTap, bool isCollapsed, bool hasChildren}) {
+      void Function() onDoubleTap,
+      bool isCollapsed,
+      bool hasChildren}) {
     this.bullet = bullet;
     this.onCheckboxChange = onCheckboxChange;
     this.onFold = onFold;
@@ -24,58 +30,79 @@ class BulletContainer extends StatelessWidget {
 
   Widget _widget() {
     if (!this.bullet.isVisible) {
-      return Container();
+      return null;
     }
     return bullet.isTodo
         ? GestureDetector(
             onPanStart: (details) => this.onEditBullet(),
-            child: CheckboxListTile(
-                value: bullet.isChecked,
-                title: (bullet.isChecked)
-                    ? Text(bullet.title,
-                        style: TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 22.0,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey[600],
-                        ))
-                    : Text(
-                        bullet.title,
-                        style: TextStyle(fontSize: 22.0,
-                        fontWeight: FontWeight.w300 )),
-                onChanged: onCheckboxChange),
-          )
+            child:
+              CheckboxListTile(
+                  dense: true,
+                  value: bullet.isChecked,
+                  title: (bullet.isChecked)
+                      ? Text(bullet.title,
+                          style: TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 22.0,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.grey[600],
+                          ))
+                      : Text(bullet.title,
+                          style: TextStyle(
+                              fontSize: FONT_TITLE,
+                              fontWeight: FontWeight.w300)),
+                  onChanged: onCheckboxChange),
+            )
         : GestureDetector(
             onPanStart: (details) => this.onEditBullet(),
             onTap: this.onFold,
-            child: ListTile(
-              title: Text(bullet.title,
-                  style: _getStyle()) ,
-              trailing: (hasChildren) ? Icon((isCollapsed) ? Icons.arrow_drop_down : Icons.arrow_left) : null,
-              subtitle: hasChildren || bullet.description.isNotEmpty ?
-              Padding(
-                      padding: EdgeInsets.only(left: 5, top: 5, bottom: 5),
+            child:ListTile(
+              title: Text(bullet.title, style: _getStyle()),
+              trailing: (hasChildren)
+                  ? Icon(
+                      (isCollapsed) ? Icons.arrow_drop_down : Icons.arrow_left)
+                  : null,
+              subtitle: hasChildren || bullet.description.isNotEmpty
+                  ? Padding(
+                      padding: EdgeInsets.only(left: 2.5, top: 2.5, bottom: 2.5),
                       child: Text(
-                          (bullet.description.isNotEmpty && !isCollapsed) ?
-                          bullet.description : "",
-                      style: TextStyle(fontSize: 15),
-                      )) : null,
+                        (bullet.description.isNotEmpty && !isCollapsed)
+                            ? bullet.description
+                            : "",
+                        style: TextStyle(fontSize: FONT_DESCRIPTION),
+                      ))
+                  : null,
               dense: true,
               isThreeLine: hasChildren || bullet.description.isNotEmpty,
-            )
-    );
+            ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        decoration: new BoxDecoration(
-            color: Colors.lightBlue[900 - 100 * this.bullet.level]),
-        child: _widget());
+    Widget widget = _widget();
+    if(widget == null){
+      return Container();
+    }
+    return
+      Container(
+        color: getMainColor(400+100 * (this.bullet.level-1)),
+          child:
+
+          Padding(
+            padding: EdgeInsets.only(left:4.0*this.bullet.level),
+              child: Card(
+      margin: EdgeInsets.only(top: 2.5, bottom: (isCollapsed || !hasChildren) ? 5 : 0),
+        color: getMainColor(400+100 * this.bullet.level),
+//        color: Colors.blue[400].withAlpha(255 - 30 * this.bullet.level),
+        child: widget
+
+          ))
+      )
+    ;
   }
 
   TextStyle _getStyle() {
-      return TextStyle(fontWeight: FontWeight.w300, fontSize: 20.0);
+    return TextStyle(fontWeight: FontWeight.w300, fontSize: FONT_TITLE);
   }
 }

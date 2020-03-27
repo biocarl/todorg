@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tudorg/bullet_list.dart';
+import 'package:tudorg/theme.dart';
 import 'bullet.dart';
 import 'org_handler.dart';
 import 'package:path/path.dart';
@@ -70,7 +71,7 @@ class AppState extends State<App> {
         );
       }),
       body: Container(
-          color: Colors.blue,
+          color: getMainColor(400),
           child: NestedScrollView(
             headerSliverBuilder:
                 (BuildContext context, bool innerBoxIsScrolled) {
@@ -78,7 +79,7 @@ class AppState extends State<App> {
                 SliverAppBar(
                   expandedHeight: 200.0,
                   backgroundColor:
-                      needsUpdate ? Colors.orangeAccent : Colors.blue,
+                      needsUpdate ? Colors.orangeAccent : getMainColor(400),
                   floating: false,
                   pinned: true,
                   flexibleSpace: FlexibleSpaceBar(
