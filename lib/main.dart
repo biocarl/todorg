@@ -42,6 +42,7 @@ class AppState extends State<App> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: BottomAppBar(
+        color: getMainColor(0),
         shape: const CircularNotchedRectangle(),
         child: Container(
           height: 50.0,
@@ -71,7 +72,7 @@ class AppState extends State<App> {
         );
       }),
       body: Container(
-          color: getMainColor(400),
+          color: getMainColor(0),
           child: NestedScrollView(
             headerSliverBuilder:
                 (BuildContext context, bool innerBoxIsScrolled) {
@@ -79,13 +80,16 @@ class AppState extends State<App> {
                 SliverAppBar(
                   expandedHeight: 200.0,
                   backgroundColor:
-                      needsUpdate ? Colors.orangeAccent : getMainColor(400),
+                      needsUpdate ? Colors.orangeAccent : getMainColor(0),
                   floating: false,
                   pinned: true,
                   flexibleSpace: FlexibleSpaceBar(
                     centerTitle: true,
                     collapseMode: CollapseMode.none,
-                    title: Text("${basename(this.filePath)}"),
+                    title: Text(
+                      "${basename(this.filePath)}",
+                      style: TextStyle(color: Colors.black),
+                    ),
                     background: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       mainAxisSize: MainAxisSize.min,
@@ -94,13 +98,13 @@ class AppState extends State<App> {
                         Flexible(
                             child: Text("TodOrg",
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.black,
                                     fontWeight: FontWeight.bold))),
                         Flexible(
                             child: IconButton(
                           icon: Icon(Icons.arrow_drop_down_circle),
                           onPressed: _selectFileAndLoad,
-                          color: Colors.white,
+                          color: Colors.black,
                         )),
                       ],
                     ),

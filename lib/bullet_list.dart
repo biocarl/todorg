@@ -62,7 +62,7 @@ class _BulletListState extends State<BulletList> {
     List<Widget> list = new List();
     for (final bullet in _bulletList) {
       list.add(Slidable(
-        key: Key(bullet.title),
+        key: Key(bullet.title), // TODO what happens if the title is not unique?
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
         child: BulletContainer(

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:tudorg/bullet_list_tile.dart';
 import 'package:tudorg/bullet.dart';
 import 'package:tudorg/theme.dart';
 
@@ -44,7 +45,7 @@ class BulletContainer extends StatelessWidget {
                         style: TextStyle(
                           decoration: TextDecoration.lineThrough,
                           fontStyle: FontStyle.italic,
-                          fontSize: 22.0,
+                          fontSize: FONT_TITLE,
                           fontWeight: FontWeight.w300,
                           color: Colors.grey[600],
                         ))
@@ -59,29 +60,32 @@ class BulletContainer extends StatelessWidget {
             onLongPress: (hasChildren && !isCollapsed)
                 ? () => Fluttertoast.showToast(msg: "Collapse before moving!")
                 : null,
-            child: ListTile(
-              title: Text(bullet.title, style: _getStyle()),
-              trailing: (hasChildren)
-                  ? Icon(
-                      (isCollapsed) ? Icons.arrow_drop_down : Icons.arrow_left)
-                  : null,
-              subtitle: hasChildren || bullet.description.isNotEmpty
+            // WHERE YOU WHERE: When Moving the child expands indefinte
+            child: BulletListTile(
+              title: Text(bullet.title,
+                  style: _getStyle(), textAlign: TextAlign.left),
+              leading: (hasChildren)
+                  ? Icon((isCollapsed)
+                      ? Icons.arrow_right
+                      : Icons.arrow_drop_down) //open and expand
+                  : (bullet.title.isEmpty)
+                      ? null //Like notebook description
+                      : Icon(
+                          Icons
+                              .panorama_fish_eye, //plain bullets without children
+                          color: Colors.transparent),
+              description: (bullet.description.isNotEmpty && !isCollapsed)
                   ? Padding(
-                      padding:
-                          EdgeInsets.only(left: 2.5, top: 2.5, bottom: 2.5),
-                      child:
-                      (bullet.description.isNotEmpty && !isCollapsed)
-                          ?
-                      SelectableText(
-                          bullet.description,
-                        style: TextStyle(fontSize: FONT_DESCRIPTION),
-                      )
-                      : Text(""),
-
-              )
+                      padding: (bullet.title.isNotEmpty)
+                          ? EdgeInsets.zero
+                          : EdgeInsets.only(left: 15, bottom: 8),
+                      child: SelectableText(
+                        bullet.description,
+                        style: TextStyle(
+                            fontSize: FONT_DESCRIPTION,
+                            color: Colors.grey[500]),
+                      ))
                   : null,
-              dense: true,
-              isThreeLine: hasChildren || bullet.description.isNotEmpty,
             ));
   }
 
@@ -92,14 +96,12 @@ class BulletContainer extends StatelessWidget {
       return Container();
     }
     return Container(
-        color: getMainColor(400 + 100 * (this.bullet.level - 1)),
+        color: getMainColor((this.bullet.level - 1)),
         child: Padding(
-            padding: EdgeInsets.only(left: 4.0 * this.bullet.level),
+            padding: EdgeInsets.only(left: 12.0 * this.bullet.level),
             child: Card(
-                margin: EdgeInsets.only(
-                    top: 2.5, bottom: (isCollapsed || !hasChildren) ? 5 : 0),
-                color: getMainColor(400 + 100 * this.bullet.level),
-//        color: Colors.blue[400].withAlpha(255 - 30 * this.bullet.level),
+                margin: EdgeInsets.only(top: 2.5, bottom: 2.5),
+                color: getMainColor(this.bullet.level),
                 child: widget)));
   }
 
