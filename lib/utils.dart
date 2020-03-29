@@ -6,6 +6,7 @@ import 'org_converter.dart';
 // For debugging
 Future<List<Bullet>> loadDebugData() async {
   print("Debug mode");
+//  var file = await _getFileData("assets/zh-test.org");
   var file = await _getFileData("assets/test.org");
   OrgConverter orgConverter = new OrgConverter();
   List<Bullet> bullets = orgConverter.parseFromString(file);

@@ -60,7 +60,6 @@ class BulletContainer extends StatelessWidget {
             onLongPress: (hasChildren && !isCollapsed)
                 ? () => Fluttertoast.showToast(msg: "Collapse before moving!")
                 : null,
-            // WHERE YOU WHERE: When Moving the child expands indefinte
             child: BulletListTile(
               title: Text(bullet.title,
                   style: _getStyle(), textAlign: TextAlign.left),

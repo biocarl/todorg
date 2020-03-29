@@ -29,28 +29,28 @@ class EditBullet extends StatefulWidget {
 }
 
 class _EditBulletState extends State<EditBullet> {
-  var inputTextController = TextEditingController();
+  var titleTextController = TextEditingController();
+  var descriptionTextController = TextEditingController();
   Bullet bullet;
   bool isTitle = true;
 
   _EditBulletState(Bullet bullet) {
     this.bullet = bullet;
-    if (this.bullet.title.isNotEmpty) {
-      this.inputTextController.text = bullet.title;
-      this.isTitle = false;
-    }
+    this.titleTextController.text = bullet.title;
+    this.descriptionTextController.text = bullet.description;
   }
 
   @override
   void initState() {
     super.initState();
-    this.inputTextController.addListener(() {
-      if (this.inputTextController.text.contains("\n")) {
-        setState(() {
-          this.isTitle = false;
-        });
-      }
-    });
+    // TODO Do one field for Header and description
+//    this.titleTextController.addListener(() {
+//      if (this.titleTextController.text.contains("\n")) {
+//        setState(() {
+//          this.isTitle = false;
+//        });
+//      }
+//    });
   }
 
   @override
@@ -64,17 +64,34 @@ class _EditBulletState extends State<EditBullet> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(
-              child: TextField(
+              child:TextField(
                 decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(20.0),
-                    labelText:
-                        'Enter ${this.isTitle ? "the task title" : "the description"}',
+                    labelText: 'Enter the description here.',
+                    hintText: "... specify."),
+                style: TextStyle(
+                  fontSize: 22.0,
+                  //color: Theme.of(context).accentColor,
+                ),
+                controller: descriptionTextController,
+                cursorWidth: 5.0,
+                autocorrect: true,
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+                //onSubmitted: ,
+              ),
+            ),
+            Container(
+              child:TextField(
+                decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.all(20.0),
+                    labelText: 'Enter the title here',
                     hintText: "... what's up?"),
                 style: TextStyle(
                   fontSize: 22.0,
                   //color: Theme.of(context).accentColor,
                 ),
-                controller: inputTextController,
+                controller: titleTextController,
                 cursorWidth: 5.0,
                 autocorrect: true,
                 autofocus: true,
@@ -85,19 +102,18 @@ class _EditBulletState extends State<EditBullet> {
             ),
             Center(
                 child: new ButtonBar(mainAxisSize: MainAxisSize.min,
-                    // this will take space as minimum as posible(to center)
                     children: <Widget>[
-//                FlatButton(
-//                  onPressed: () {
-//                    Navigator.pop(context,
-//                        this.existingString); //TODO can you return null? For not wanting to update/create a bullet?
-//                  },
-//                  child: Text('Cancel'),
-//                ),
+                FlatButton(
+                  onPressed: () {
+                    Navigator.pop(context, null);
+                  },
+                  child: Text('Cancel'),
+                ),
                   FlatButton(
                     onPressed: () {
                       Bullet bulletEdited = Bullet.clone(bullet);
-                      bulletEdited.title = inputTextController.text;
+                      bulletEdited.title = titleTextController.text;
+                      bulletEdited.description = descriptionTextController.text;
                       Navigator.pop(context, bulletEdited);
                     },
                     child: Text('Save',
