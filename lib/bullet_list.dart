@@ -108,7 +108,7 @@ class _BulletListState extends State<BulletList> {
             caption: 'Archive',
             color: Colors.green,
             icon: Icons.archive,
-            onTap: () => Fluttertoast.showToast(msg: "Not supported yet"),
+            onTap: () => _moveBulletToEnd(bullet),
           ),
           IconSlideAction(
             caption: 'Delete',
@@ -124,17 +124,10 @@ class _BulletListState extends State<BulletList> {
 
   _moveSubtree(int oldIndex, int newIndex) {
     setState(() {
-      print("old: ${oldIndex}, new: ${newIndex}");
       int diff = _getIndexOfLastChild(oldIndex) - oldIndex;
-      print(diff);
       if (oldIndex < newIndex) {
         newIndex -= 1 + diff;
-      } else {
-        print("Other case");
       }
-
-      print("old: ${oldIndex}, new: ${newIndex}");
-
       var replaceWigets = _bulletList.sublist(oldIndex, oldIndex + diff + 1);
       _bulletList.removeRange(oldIndex, oldIndex + diff + 1);
 
@@ -249,6 +242,12 @@ class _BulletListState extends State<BulletList> {
     });
   }
 
+  void _moveBulletToEnd(Bullet bullet) {
+    int position = _bulletList.indexOf(bullet);
+    _moveSubtree(position,_bulletList.length);
+    Fluttertoast.showToast(msg: "Bullet moved to end of file.");
+  }
+
   void _deleteBullet(Bullet bullet) {
     setState(() {
       int position = _bulletList.indexOf(bullet);
@@ -274,7 +273,6 @@ class _BulletListState extends State<BulletList> {
     int position = _bulletList.indexOf(bullet);
     //Check if bullet is already folded or not
     if (_bulletList[position + 1].isVisible) {
-      print("fold");
       _foldBullet(bullet);
     } else {
       _unfoldBullet(bullet);
