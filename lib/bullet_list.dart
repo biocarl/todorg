@@ -143,11 +143,15 @@ class _BulletListState extends State<BulletList> {
   }
 
   int _determineNewLevelAfterRelocation(int bulletIndex) {
-    //In bounds: Copy from previous node
-    if (bulletIndex > 0 && bulletIndex < _bulletList.length) {
-      return _bulletList[bulletIndex - 1].level;
+    // Do clone from next previous sibling which is visible
+    int lowerBound = bulletIndex;
+    while(lowerBound > 0){
+      if(_bulletList[lowerBound].isVisible){
+        return _bulletList[lowerBound].level;
+      }
+      lowerBound --;
     }
-    // For first element is root sibling
+    // First element in list is always root sibling
     return 1;
   }
 
