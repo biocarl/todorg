@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tudorg/bullet_list.dart';
+import 'package:tudorg/file_picker.dart';
 import 'package:tudorg/theme.dart';
 import 'bullet.dart';
 import 'org_handler.dart';
@@ -30,6 +33,8 @@ class AppState extends State<App> {
   String filePath = "";
   List<Bullet> bulletList = [];
   bool needsUpdate = false;
+  bool isLastFileSelection = false;
+
 
   @override
   void initState() {
@@ -86,26 +91,57 @@ class AppState extends State<App> {
                   flexibleSpace: FlexibleSpaceBar(
                     centerTitle: true,
                     collapseMode: CollapseMode.none,
-                    title: Text(
-                      "${basename(this.filePath)}",
-                      style: TextStyle(color: Colors.black),
-                    ),
+                    title: (isLastFileSelection)
+                        ? GestureDetector(
+                            child: Text(
+                              "Select last opened file",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            onTap: () => setState(() {
+                              isLastFileSelection = false;
+                            }),
+                          )
+                        : Text(
+                            "${basename(this.filePath)}",
+                            style: TextStyle(color: Colors.black),
+                          ),
                     background: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
+                        Flexible(
+                            child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 25.0))),
                         Flexible(
                             child: Text("TodOrg",
                                 style: TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold))),
-                        Flexible(
-                            child: IconButton(
-                          icon: Icon(Icons.arrow_drop_down_circle),
-                          onPressed: _selectFileAndLoad,
-                          color: Colors.black,
-                        )),
+                        (isLastFileSelection)
+                            ? OpenLastFilePicker(
+                                onSelection: (selectedFile) async{
+                                  _storeLastOpenedFile();
+                                  setState(() {
+                                    this.filePath = selectedFile;
+                                    isLastFileSelection = false;
+                                    _parseFile();
+                                  });
+                                },
+                              )
+                            : Flexible(
+                                child: GestureDetector(
+                                    child: IconButton(
+                                      icon: Icon(Icons.arrow_drop_down_circle),
+                                      onPressed: _selectFileAndLoad,
+                                      color: Colors.black,
+                                    ),
+                                    onLongPress: () async {
+                                      setState(() {
+                                        isLastFileSelection = true;
+                                      });
+                                    }),
+                              )
                       ],
                     ),
                   ),
@@ -130,6 +166,7 @@ class AppState extends State<App> {
     var bullets = await loadDebugData();
     setState(() {
       this.bulletList = bullets;
+      this.filePath = "etc/dummy.org";
       this.needsUpdate = false;
     });
   }
@@ -167,11 +204,35 @@ class AppState extends State<App> {
     }
   }
 
+
+  _storeLastOpenedFile() async {
+    if (filePath == null) {
+      return;
+    }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    int maxAmountToStore = 5; //inclusive
+    String updatedFileList = filePath;
+
+    // Get files
+    String filesString = prefs.getString('last-opended');
+    if (filesString != null) {
+      List<String> files = filesString.split(" ");
+      files.insert(0, filePath);
+      files = files.toSet().toList(); //make elements distinct
+      if (files.length > maxAmountToStore) {
+        files.removeLast();
+      }
+      updatedFileList = files.join(" ");
+    }
+    prefs.setString('last-opended', updatedFileList);
+  }
+
   _selectFileAndLoad() {
     FilePicker.getFile().then((file) {
-      SharedPreferences.getInstance().then((prefs) {
+      SharedPreferences.getInstance().then((prefs) async {
         if (file != null) {
-          print("Setting org-file ${file.absolute.path}");
+          await _storeLastOpenedFile();
           prefs.setString('org-file', file.absolute.path);
           this.filePath = file.absolute.path;
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -231,4 +292,7 @@ class AppState extends State<App> {
       }
     });
   }
+
+
 }
+
