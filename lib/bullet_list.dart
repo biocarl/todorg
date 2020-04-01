@@ -34,7 +34,7 @@ class _BulletListState extends State<BulletList> {
     super.didUpdateWidget(oldWidget);
     if (widget?._bulletList != null && _bulletList != widget._bulletList) {
       _bulletList = widget._bulletList;
-      _unfoldFromRoot();
+      _unfoldFromDocumentRoot();
     }
   }
 
@@ -87,13 +87,13 @@ class _BulletListState extends State<BulletList> {
             caption: 'Promote',
             color: Colors.grey[100],
             icon: Icons.format_indent_decrease,
-            onTap: () => _changeBulletLevel(bullet, -1),
+            onTap: () => _changeBulletLevelOfSubtree(bullet, -1),
           ),
           IconSlideAction(
             caption: 'Demote',
             color: Colors.grey[100],
             icon: Icons.format_indent_increase,
-            onTap: () => _changeBulletLevel(bullet, 1),
+            onTap: () => _changeBulletLevelOfSubtree(bullet, 1),
           ),
         ],
         dismissal: SlidableDismissal(
@@ -124,32 +124,45 @@ class _BulletListState extends State<BulletList> {
 
   _moveSubtree(int oldIndex, int newIndex) {
     setState(() {
-      int diff = _getIndexOfLastChild(oldIndex) - oldIndex;
-      if (oldIndex < newIndex) {
-        newIndex -= 1 + diff;
-      }
-      var replaceWigets = _bulletList.sublist(oldIndex, oldIndex + diff + 1);
-      _bulletList.removeRange(oldIndex, oldIndex + diff + 1);
+      int numberOfChildren = _getIndexOfLastChild(oldIndex) - oldIndex;
 
-      _bulletList.insertAll(newIndex, replaceWigets);
-      //TODO if there is a subtree adapt all ranks relative to new root rank
-      // For now rank is adapted when for single node is moved
-      if (replaceWigets.length == 1) {
-        _bulletList[newIndex].level =
-            _determineNewLevelAfterRelocation(newIndex);
+      // Adapt new levels of subtree BEFORE moving
+      int levelDeltaOfParent = _determineNewLevelAfterRelocation(newIndex) -
+          _bulletList[oldIndex].level;
+      _changeBulletLevelOfSubtree(_bulletList[oldIndex], levelDeltaOfParent);
+
+      // Account for index shift
+      if (oldIndex < newIndex) {
+        newIndex -= 1 + numberOfChildren;
       }
+
+      // Cut & paste subtree
+      var replaceWidgets =
+          _bulletList.sublist(oldIndex, oldIndex + numberOfChildren + 1);
+      _bulletList.removeRange(oldIndex, oldIndex + numberOfChildren + 1);
+      _bulletList.insertAll(newIndex, replaceWidgets);
       this.widget._onUpdate();
     });
   }
 
   int _determineNewLevelAfterRelocation(int bulletIndex) {
     // Do clone from next previous sibling which is visible
-    int lowerBound = bulletIndex;
-    while(lowerBound > 0){
-      if(_bulletList[lowerBound].isVisible){
-        return _bulletList[lowerBound].level;
+    int lowerBound = bulletIndex - 1;
+    while (lowerBound > 0) {
+      final Bullet prev = _bulletList[lowerBound];
+      if (prev.isVisible) {
+        if (!_hasChildren(prev)) {
+          return _bulletList[lowerBound].level;
+        } else {
+          if (_isCollapsed(prev)) {
+            return _bulletList[lowerBound].level;
+          } else {
+            return _bulletList[lowerBound].level +
+                1; // A bullet which moved as direct child of a expanded parent will get a +1 rank relative to it, alternative: Copy level of sibling below
+          }
+        }
       }
-      lowerBound --;
+      lowerBound--;
     }
     // First element in list is always root sibling
     return 1;
@@ -160,11 +173,6 @@ class _BulletListState extends State<BulletList> {
     if (position == _bulletList.length - 1) {
       return false;
     }
-
-//    if(bullet.description.isNotEmpty){ //also counts as children
-//      return true;
-//    }
-
     return bullet.level < _bulletList[position + 1].level;
   }
 
@@ -202,8 +210,7 @@ class _BulletListState extends State<BulletList> {
     _unfoldByIndex(position, root.level);
   }
 
-  //Showing only highest hierarchy (on startup)
-  void _unfoldFromRoot() {
+  void _unfoldFromDocumentRoot() {
     _unfoldByIndex(-1, 0);
   }
 
@@ -262,15 +269,23 @@ class _BulletListState extends State<BulletList> {
     });
   }
 
-  _changeBulletLevel(Bullet bullet, int levelDelta) {
+  _changeBulletLevelOfSubtree(Bullet bullet, int levelDelta) {
+    // No change
+    if (levelDelta == 0) {
+      return;
+    }
+
+    // Level 0 and beyond are not allowed TODO give visual feedback - wobbling effect
+    if ((bullet.level + levelDelta) <= 0) {
+      return;
+    }
+
     int start = _bulletList.indexOf(bullet);
     int end = _getIndexOfLastChild(start);
 
     setState(() {
       for (int i = start; i <= end; i++) {
-        Bullet updatedBullet = Bullet.clone(_bulletList[i]);
-        updatedBullet.level += levelDelta;
-        _bulletList[i] = updatedBullet;
+        _bulletList[i].level += levelDelta;
       }
     });
     Fluttertoast.showToast(msg: (levelDelta < 0) ? "Promoted" : "Demoted");
