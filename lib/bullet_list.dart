@@ -244,7 +244,7 @@ class _BulletListState extends State<BulletList> {
 
   void _moveBulletToEnd(Bullet bullet) {
     int position = _bulletList.indexOf(bullet);
-    _moveSubtree(position,_bulletList.length);
+    _moveSubtree(position, _bulletList.length);
     Fluttertoast.showToast(msg: "Bullet moved to end of file.");
   }
 
@@ -259,11 +259,17 @@ class _BulletListState extends State<BulletList> {
   }
 
   _changeBulletLevel(Bullet bullet, int levelDelta) {
+    int start = _bulletList.indexOf(bullet);
+    int end = _getIndexOfLastChild(start);
+
     setState(() {
-      int position = _bulletList.indexOf(bullet);
-      _bulletList[position].level += levelDelta;
+      for (int i = start; i <= end; i++) {
+        Bullet updatedBullet = Bullet.clone(_bulletList[i]);
+        updatedBullet.level += levelDelta;
+        _bulletList[i] = updatedBullet;
+      }
     });
-    Fluttertoast.showToast(msg: "Promoted");
+    Fluttertoast.showToast(msg: (levelDelta < 0) ? "Promoted" : "Demoted");
   }
 
   _handleFold(Bullet bullet) {
