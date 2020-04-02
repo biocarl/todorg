@@ -9,7 +9,7 @@ This is a description and should be seen as such.
 Here we see a multiline description.
 How does this look like?
 *** TODO Task 1.1.1
-** TODO Task1
+** DONE Task1
 This is a description and should not be shown for now.
 ** TODO Task2
 **

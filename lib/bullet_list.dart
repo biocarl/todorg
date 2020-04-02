@@ -66,21 +66,21 @@ class _BulletListState extends State<BulletList> {
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
         child: BulletContainer(
-            bullet: bullet,
-            isCollapsed: _isCollapsed(bullet),
-            hasChildren: _hasChildren(bullet),
-            onFold: () => _handleFold(bullet),
-            onEditBullet: () => _editBullet(context, bullet),
-            onCheckboxChange: (checkValue) {
-              setState(() {
-                if (!checkValue) {
-                  bullet.isChecked = false;
-                } else {
-                  bullet.isChecked = true;
-                }
-                this.widget._onUpdate();
-              });
-            }),
+          bullet: bullet,
+          isCollapsed: _isCollapsed(bullet),
+          hasChildren: _hasChildren(bullet),
+          onTap: () {
+            if(bullet.isTodo && !_hasChildren(bullet)){
+              _checkBullet(!bullet.isChecked, bullet);
+            }else{
+              _handleFold(bullet);
+            }
+          },
+          onEditBullet: () => _editBullet(context, bullet),
+          onCheckboxChange: (bullet.isTodo)
+              ? (checkValue) => _checkBullet(checkValue, bullet)
+              : null,
+        ),
         movementDuration: const Duration(milliseconds: 200),
         actions: <Widget>[
           IconSlideAction(
@@ -314,5 +314,12 @@ class _BulletListState extends State<BulletList> {
         this.widget._onUpdate();
       });
     }
+  }
+
+  _checkBullet(checkValue, Bullet bullet) {
+    setState(() {
+      bullet.isChecked = checkValue;
+      this.widget._onUpdate();
+    });
   }
 }
