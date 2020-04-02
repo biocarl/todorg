@@ -64,7 +64,7 @@ class _BulletListState extends State<BulletList> {
       list.add(Slidable(
         key: Key(bullet.title), // TODO what happens if the title is not unique?
         actionPane: SlidableDrawerActionPane(),
-        actionExtentRatio: 0.25,
+        actionExtentRatio: 0.20,
         child: BulletContainer(
           bullet: bullet,
           isCollapsed: _isCollapsed(bullet),
@@ -81,17 +81,17 @@ class _BulletListState extends State<BulletList> {
               ? (checkValue) => _checkBullet(checkValue, bullet)
               : null,
         ),
-        movementDuration: const Duration(milliseconds: 200),
+        movementDuration: const Duration(milliseconds: 100),
         actions: <Widget>[
           IconSlideAction(
             caption: 'Promote',
-            color: Colors.grey[100],
+            foregroundColor: Colors.grey[500],
             icon: Icons.format_indent_decrease,
             onTap: () => _changeBulletLevelOfSubtree(bullet, -1),
           ),
           IconSlideAction(
             caption: 'Demote',
-            color: Colors.grey[100],
+            foregroundColor: Colors.grey[500],
             icon: Icons.format_indent_increase,
             onTap: () => _changeBulletLevelOfSubtree(bullet, 1),
           ),
@@ -106,13 +106,13 @@ class _BulletListState extends State<BulletList> {
         secondaryActions: <Widget>[
           IconSlideAction(
             caption: 'Archive',
-            color: Colors.green,
+            foregroundColor: Colors.green,
             icon: Icons.archive,
             onTap: () => _moveBulletToEnd(bullet),
           ),
           IconSlideAction(
             caption: 'Delete',
-            color: Colors.red,
+            foregroundColor: Colors.red,
             icon: Icons.delete,
             onTap: () => _deleteBullet(bullet),
           ),
