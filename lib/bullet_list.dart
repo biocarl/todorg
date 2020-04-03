@@ -282,6 +282,15 @@ class _BulletListState extends State<BulletList> {
   _checkBullet(checkValue, Bullet bullet) {
     setState(() {
       bullet.isChecked = checkValue;
+      if(_hasChildren(bullet)){
+        _getDirectChildrenOfBullet(bullet).forEach(
+            (directChild) {
+              if(directChild.isTodo){
+                _checkBullet(checkValue, directChild);
+              }
+            }
+        );
+      }
       this.widget._onUpdate();
     });
   }
