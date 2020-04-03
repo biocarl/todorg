@@ -20,7 +20,8 @@ class BulletContainer extends StatelessWidget {
       void Function() onTap,
       void Function() onEditBullet,
       bool isCollapsed,
-      bool hasChildren, this.checkedCheckboxRatio}) {
+      bool hasChildren,
+      this.checkedCheckboxRatio}) {
     this.bullet = bullet;
     this.onCheckboxChange = onCheckboxChange;
     this.onTap = onTap;

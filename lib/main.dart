@@ -83,7 +83,7 @@ class AppState extends State<App> {
                 (BuildContext context, bool innerBoxIsScrolled) {
               return <Widget>[
                 SliverAppBar(
-                  expandedHeight: 200.0,
+                  expandedHeight: 150.0,
                   backgroundColor:
                       needsUpdate ? Colors.orangeAccent : getMainColor(0),
                   floating: false,
@@ -132,8 +132,9 @@ class AppState extends State<App> {
                             : Flexible(
                                 child: GestureDetector(
                                     child: IconButton(
-                                      icon: Icon(Icons.arrow_drop_down_circle),
+                                      icon: Icon(Icons.folder_open),
                                       onPressed: _selectFileAndLoad,
+                                      highlightColor: Colors.orangeAccent,
                                       color: Colors.black,
                                     ),
                                     onLongPress: () async {

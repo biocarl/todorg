@@ -71,9 +71,9 @@ class _BulletListState extends State<BulletList> {
           hasChildren: _hasChildren(bullet),
           checkedCheckboxRatio: _getCheckedCheckboxRatio(bullet),
           onTap: () {
-            if(bullet.isTodo && !_hasChildren(bullet)){
+            if (bullet.isTodo && !_hasChildren(bullet)) {
               _checkBullet(!bullet.isChecked, bullet);
-            }else{
+            } else {
               _handleFold(bullet);
             }
           },
@@ -159,7 +159,7 @@ class _BulletListState extends State<BulletList> {
             return _bulletList[lowerBound].level;
           } else {
             return _bulletList[lowerBound].level +
-                1; // A bullet which moved as direct child of a expanded parent will get a +1 rank relative to it, alternative: Copy level of sibling below
+                1; // A bullet which moved as first direct child of the expanded parent will get a +1 rank relative to it
           }
         }
       }
