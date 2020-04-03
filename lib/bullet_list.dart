@@ -208,7 +208,6 @@ class _BulletListState extends State<BulletList> {
     _unfoldDirectChildren(null);
   }
 
-
   void _unfoldDirectChildren(Bullet bullet) {
     _getDirectChildrenOfBullet(bullet).forEach((directChild) {
       directChild.isVisible = true;
@@ -282,14 +281,18 @@ class _BulletListState extends State<BulletList> {
   _checkBullet(checkValue, Bullet bullet) {
     setState(() {
       bullet.isChecked = checkValue;
-      if(_hasChildren(bullet)){
-        _getDirectChildrenOfBullet(bullet).forEach(
-            (directChild) {
-              if(directChild.isTodo){
-                _checkBullet(checkValue, directChild);
-              }
-            }
-        );
+      // Update parent checkboxes
+      _getParentBullets(bullet).forEach((parent) {
+        parent.isChecked = _getDirectChildrenOfBullet(parent)
+            .every((bullet) => (!bullet.isTodo || bullet.isChecked));
+      });
+      // Update children checkboxes
+      if (_hasChildren(bullet)) {
+        _getChildrenOfBullet(bullet).forEach((child) {
+          if (child.isTodo) {
+            child.isChecked = checkValue;
+          }
+        });
       }
       this.widget._onUpdate();
     });
@@ -319,7 +322,6 @@ class _BulletListState extends State<BulletList> {
     return [numberOfCheckedCheckBoxChildren, numberOfCheckboxChildren];
   }
 
-
   Iterable<Bullet> _getDirectChildrenOfBullet(Bullet bullet) sync* {
     /*
 
@@ -337,7 +339,7 @@ class _BulletListState extends State<BulletList> {
 
         */
     int maxChildLevel =
-    0; //Defines the currently highest bullet level < root.level. Bullets which a level smaller than maxChildLevel are not direct childs
+        0; //Defines the currently highest bullet level < root.level. Bullets which a level smaller than maxChildLevel are not direct childs
 
     // If bullet is null it unfolds from document root
     int rootLevel = 0;
@@ -366,6 +368,35 @@ class _BulletListState extends State<BulletList> {
         _bulletList[index + 1].level > _bulletList[rootIndex].level) {
       index++;
       yield _bulletList[index];
+    }
+  }
+
+  Bullet _getParentBullet(Bullet bullet) {
+    int rootIndex = _bulletList.indexOf(bullet);
+    int index = rootIndex - 1;
+    while (index >= 0 && _bulletList[index].level >= bullet.level) {
+      index--;
+    }
+    // Document root is highest
+    if (index < 0) {
+      return null;
+    }
+    return _bulletList[index];
+  }
+
+  /*
+        _getParentBullets(child) returns parent1 -> parent2 -> parent3 -> null
+        null (document parent)
+        * parent3
+        ** parent2
+        *** parent1
+        **** child
+   */
+  Iterable<Bullet> _getParentBullets(Bullet bullet) sync* {
+    Bullet currentParent = _getParentBullet(bullet);
+    while (currentParent != null) {
+      yield currentParent;
+      currentParent = _getParentBullet(currentParent);
     }
   }
 }
