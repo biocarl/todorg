@@ -69,6 +69,7 @@ class _BulletListState extends State<BulletList> {
           bullet: bullet,
           isCollapsed: _isCollapsed(bullet),
           hasChildren: _hasChildren(bullet),
+          checkedCheckboxRatio: _getCheckedCheckboxRatio(bullet),
           onTap: () {
             if(bullet.isTodo && !_hasChildren(bullet)){
               _checkBullet(!bullet.isChecked, bullet);
@@ -321,5 +322,32 @@ class _BulletListState extends State<BulletList> {
       bullet.isChecked = checkValue;
       this.widget._onUpdate();
     });
+  }
+
+  List<int> _getCheckedCheckboxRatio(Bullet bullet) {
+    //Calculates the number of checked checkbox relative to the total amount of checkbox a bullet has as children
+    if(!bullet.isTodo || !_hasChildren(bullet)) {
+      return null;
+    }
+    int position = _bulletList.indexOf(bullet);
+    int index = position;
+    int numberOfCheckboxChildren = 0;
+    int numberOfCheckedCheckBoxChildren = 0;
+
+    while (index + 1 < _bulletList.length && _bulletList[index + 1].level > _bulletList[position].level) {
+      index++;
+      if(_bulletList[index].isTodo){
+        numberOfCheckboxChildren++;
+        if(_bulletList[index].isChecked){
+          numberOfCheckedCheckBoxChildren++;
+        }
+      }
+    }
+
+    if(numberOfCheckboxChildren == 0){
+      return null;
+    }
+
+    return [numberOfCheckedCheckBoxChildren,numberOfCheckboxChildren];
   }
 }

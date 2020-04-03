@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 class BulletTile extends StatelessWidget {
+
   const BulletTile({
     this.foldArrow,
     this.title,
     this.description,
     this.onCheckBoxChange,
-    this.isChecked,
+    this.isChecked,this.checkboxRatio,
   });
   final Widget foldArrow;
   final String title;
@@ -16,6 +17,7 @@ class BulletTile extends StatelessWidget {
   // If checkbox
   final Function(bool) onCheckBoxChange;
   final bool isChecked;
+  final List<int> checkboxRatio;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +32,7 @@ class BulletTile extends StatelessWidget {
       flex: 9,
       child: _BulletContent(
           isChecked: (isCheckBox && isChecked),
+          checkboxRatio:  checkboxRatio,
           title: title,
           description: description), // empty when notebook description
     ));
@@ -56,11 +59,12 @@ class BulletTile extends StatelessWidget {
 }
 
 class _BulletContent extends StatelessWidget {
+
   const _BulletContent({
     Key key,
     this.title,
     this.description,
-    this.isChecked,
+    this.isChecked, this.checkboxRatio,
   }) : super(key: key);
 
   final String title;
@@ -69,6 +73,7 @@ class _BulletContent extends StatelessWidget {
   final double FONT_DESCRIPTION = 18;
 
   final bool isChecked;
+  final List<int> checkboxRatio;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +83,11 @@ class _BulletContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          ( checkboxRatio!= null) ? Text( " ${checkboxRatio[0]}/${ checkboxRatio[1]}",
+            style: TextStyle(
+              color: (checkboxRatio[0] == checkboxRatio[1]) ? Colors.green : Colors.orangeAccent,
+            ),
+          ) : Container(),
           Container(
               child: Text(title,
                   style: TextStyle(
