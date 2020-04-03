@@ -195,63 +195,25 @@ class _BulletListState extends State<BulletList> {
   }
 
   void _foldBullet(Bullet root) {
-    int position = _bulletList.indexOf(root);
-    setState(() {
-      int index = position + 1;
-      while (
-          index < _bulletList.length && _bulletList[index].level > root.level) {
-        _bulletList[index].isVisible = false;
-        index++;
-      }
-    });
+    _getChildrenOfBullet(root).forEach((child) => child.isVisible = false);
+    setState(() {});
   }
 
   void _unfoldBullet(Bullet root) {
-    int position = _bulletList.indexOf(root);
-    _unfoldByIndex(position, root.level);
+    _unfoldDirectChildren(root);
   }
 
   void _unfoldFromDocumentRoot() {
-    _unfoldByIndex(-1, 0);
+    _bulletList.forEach((bullet) => bullet.isVisible = false);
+    _unfoldDirectChildren(null);
   }
 
-  //Unfold the next hierarchy coming after the bullet with position
-  void _unfoldByIndex(int position, int rootLevel) {
-    int maxChildLevel =
-        0; //Defines the currently highest bullet level < root.level. Bullets which a level smaller than maxChildLevel are collapsed
-    int index = position + 1;
 
-    setState(() {
-      //Is child
-      while (
-          index < _bulletList.length && _bulletList[index].level > rootLevel) {
-        /*
-
-        Determine the direct children of root (possibly with not defined hierarchies in between)
-
-        * Title (Root)
-        **** Title (see 1.)
-          ***** Title (hidden)
-        *** Title (see 3.)
-        *** Title (see 2.)
-
-        1. First child after root is always visible
-        2. A sibling also has to be visible
-        3. A child which is higher up in the hierarchy than the previous highest visible child also has to be visible
-
-        */
-        if (maxChildLevel == 0 ||
-            _bulletList[index].level == maxChildLevel ||
-            _bulletList[index].level < maxChildLevel) {
-          _bulletList[index].isVisible = true;
-          maxChildLevel = _bulletList[index].level;
-        } // Is indirect child and therefore hidden TODO we can assume that bullet is already hidden by default
-        else if (_bulletList[index].level > maxChildLevel) {
-          _bulletList[index].isVisible = false;
-        }
-        index++;
-      }
+  void _unfoldDirectChildren(Bullet bullet) {
+    _getDirectChildrenOfBullet(bullet).forEach((directChild) {
+      directChild.isVisible = true;
     });
+    setState(() {});
   }
 
   void _moveBulletToEnd(Bullet bullet) {
@@ -326,28 +288,75 @@ class _BulletListState extends State<BulletList> {
 
   List<int> _getCheckedCheckboxRatio(Bullet bullet) {
     //Calculates the number of checked checkbox relative to the total amount of checkbox a bullet has as children
-    if(!bullet.isTodo || !_hasChildren(bullet)) {
+    if (!bullet.isTodo || !_hasChildren(bullet)) {
       return null;
     }
-    int position = _bulletList.indexOf(bullet);
-    int index = position;
     int numberOfCheckboxChildren = 0;
     int numberOfCheckedCheckBoxChildren = 0;
 
-    while (index + 1 < _bulletList.length && _bulletList[index + 1].level > _bulletList[position].level) {
-      index++;
-      if(_bulletList[index].isTodo){
+    _getDirectChildrenOfBullet(bullet).forEach((child) {
+      if (child.isTodo) {
         numberOfCheckboxChildren++;
-        if(_bulletList[index].isChecked){
+        if (child.isChecked) {
           numberOfCheckedCheckBoxChildren++;
         }
       }
-    }
+    });
 
-    if(numberOfCheckboxChildren == 0){
+    if (numberOfCheckboxChildren == 0) {
       return null;
     }
 
-    return [numberOfCheckedCheckBoxChildren,numberOfCheckboxChildren];
+    return [numberOfCheckedCheckBoxChildren, numberOfCheckboxChildren];
+  }
+
+
+  Iterable<Bullet> _getDirectChildrenOfBullet(Bullet bullet) sync* {
+    /*
+
+        Determine the direct children of root (possibly with not defined hierarchies in between)
+
+        * Title (Root)
+        **** Title (see 1.)
+          ***** Title
+        *** Title (see 3.)
+        *** Title (see 2.)
+
+        1. First child after root is always a direct child
+        2. A sibling of a direct child is also a direct child
+        3. A child which is higher up in the hierarchy than the previous highest direct child also has to be a direct child
+
+        */
+    int maxChildLevel =
+    0; //Defines the currently highest bullet level < root.level. Bullets which a level smaller than maxChildLevel are not direct childs
+
+    // If bullet is null it unfolds from document root
+    int rootLevel = 0;
+    int index = 0;
+
+    if (bullet != null) {
+      rootLevel = bullet.level;
+      index = _bulletList.indexOf(bullet) + 1;
+    }
+
+    while (index < _bulletList.length && _bulletList[index].level > rootLevel) {
+      if (maxChildLevel == 0 ||
+          _bulletList[index].level == maxChildLevel ||
+          _bulletList[index].level < maxChildLevel) {
+        maxChildLevel = _bulletList[index].level;
+        yield _bulletList[index];
+      }
+      index++;
+    }
+  }
+
+  Iterable<Bullet> _getChildrenOfBullet(Bullet bullet) sync* {
+    int rootIndex = _bulletList.indexOf(bullet);
+    int index = rootIndex;
+    while (index + 1 < _bulletList.length &&
+        _bulletList[index + 1].level > _bulletList[rootIndex].level) {
+      index++;
+      yield _bulletList[index];
+    }
   }
 }
