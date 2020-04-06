@@ -16,7 +16,6 @@ class BulletList extends StatefulWidget {
   BulletList({Function onSave, List<Bullet> bulletList, Function onUpdate}) {
     this._bulletList = bulletList;
     this._onSave = onSave;
-    this._onUpdate = onUpdate;
   }
 
   @override

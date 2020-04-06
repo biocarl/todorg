@@ -104,7 +104,7 @@ class _BulletContent extends StatelessWidget {
                       padding: (title.isNotEmpty)
                           ? EdgeInsets.symmetric(vertical: 5)
                           : EdgeInsets.only(
-                              left: 15, bottom: 8), // e.g. notebook description
+                              left: 15, bottom: 5), // e.g. notebook description
                       child: SelectableText(
                         description,
                         style: TextStyle(
