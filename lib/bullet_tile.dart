@@ -4,13 +4,13 @@ import 'dart:math';
 class BulletTile extends StatelessWidget {
 
   const BulletTile({
-    this.foldArrow,
+    this.collapsingArrow,
     this.title,
     this.description,
     this.onCheckBoxChange,
     this.isChecked,this.checkboxRatio,
   });
-  final Widget foldArrow;
+  final Widget collapsingArrow;
   final String title;
   final String description;
 
@@ -24,8 +24,8 @@ class BulletTile extends StatelessWidget {
     bool isCheckBox = onCheckBoxChange != null;
     List<Widget> widgets = [];
 
-    if (foldArrow != null) {
-      widgets.add(Expanded(flex: 1, child: foldArrow));
+    if (collapsingArrow != null) {
+      widgets.add(Expanded(flex: 1, child: collapsingArrow));
     }
 
     widgets.add(Expanded(

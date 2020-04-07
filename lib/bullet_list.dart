@@ -27,13 +27,14 @@ class BulletList extends StatefulWidget {
 class _BulletListState extends State<BulletList> {
   // Init stateful things in here
   List<Bullet> _bulletList = [];
+  Bullet lastExpandedBullet;
 
   @override
   void didUpdateWidget(BulletList oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget?._bulletList != null && _bulletList != widget._bulletList) {
       _bulletList = widget._bulletList;
-      _unfoldFromDocumentRoot();
+      _expandFromDocumentRoot();
     }
   }
 
@@ -193,21 +194,21 @@ class _BulletListState extends State<BulletList> {
     return index;
   }
 
-  void _foldBullet(Bullet root) {
+  void _collapseBullet(Bullet root) {
     _getChildrenOfBullet(root).forEach((child) => child.isVisible = false);
     setState(() {});
   }
 
-  void _unfoldBullet(Bullet root) {
-    _unfoldDirectChildren(root);
+  void _expandBullet(Bullet root) {
+    _expandDirectChildren(root);
   }
 
-  void _unfoldFromDocumentRoot() {
+  void _expandFromDocumentRoot() {
     _bulletList.forEach((bullet) => bullet.isVisible = false);
-    _unfoldDirectChildren(null);
+    _expandDirectChildren(null);
   }
 
-  void _unfoldDirectChildren(Bullet bullet) {
+  void _expandDirectChildren(Bullet bullet) {
     _getDirectChildrenOfBullet(bullet).forEach((directChild) {
       directChild.isVisible = true;
     });
@@ -257,11 +258,11 @@ class _BulletListState extends State<BulletList> {
       return;
     }
     int position = _bulletList.indexOf(bullet);
-    //Check if bullet is already folded or not
+    //Check if bullet is already collapsed or not
     if (_bulletList[position + 1].isVisible) {
-      _foldBullet(bullet);
+      _collapseBullet(bullet);
     } else {
-      _unfoldBullet(bullet);
+      _expandBullet(bullet);
     }
   }
 
@@ -340,7 +341,7 @@ class _BulletListState extends State<BulletList> {
     int maxChildLevel =
         0; //Defines the currently highest bullet level < root.level. Bullets which a level smaller than maxChildLevel are not direct childs
 
-    // If bullet is null it unfolds from document root
+    // If bullet is null it is collapsed from document root
     int rootLevel = 0;
     int index = 0;
 

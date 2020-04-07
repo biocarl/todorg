@@ -39,7 +39,7 @@ class BulletContainer extends StatelessWidget {
       onCheckBoxChange: onCheckboxChange,
       isChecked: bullet.isChecked,
       checkboxRatio: checkedCheckboxRatio,
-      foldArrow: (hasChildren)
+      collapsingArrow: (hasChildren)
           ? Icon((isCollapsed) ? Icons.arrow_right : Icons.arrow_drop_down)
           : (bullet.title.isEmpty)
               ? null //Like notebook description
