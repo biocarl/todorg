@@ -1,4 +1,4 @@
-# tudOrg - a todo app based on org-mode.
+# todOrg - a todo app based on org-mode.
 
 This is still a very early sketch.
 
