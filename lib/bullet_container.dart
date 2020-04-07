@@ -11,6 +11,7 @@ class BulletContainer extends StatelessWidget {
   Function onTap;
   Function onEditBullet;
   bool isCollapsed;
+  bool isLastExpanded;
   bool hasChildren;
   List<int> checkedCheckboxRatio;
 
@@ -21,13 +22,15 @@ class BulletContainer extends StatelessWidget {
       void Function() onEditBullet,
       bool isCollapsed,
       bool hasChildren,
-      this.checkedCheckboxRatio}) {
+      this.checkedCheckboxRatio,
+      bool isLastExpanded}) {
     this.bullet = bullet;
     this.onCheckboxChange = onCheckboxChange;
     this.onTap = onTap;
     this.onEditBullet = onEditBullet;
     this.isCollapsed = isCollapsed;
     this.hasChildren = hasChildren;
+    this.isLastExpanded = isLastExpanded;
   }
 
   Widget _bulletTile() {
@@ -39,12 +42,7 @@ class BulletContainer extends StatelessWidget {
       onCheckBoxChange: onCheckboxChange,
       isChecked: bullet.isChecked,
       checkboxRatio: checkedCheckboxRatio,
-      collapsingArrow: (hasChildren)
-          ? Icon((isCollapsed) ? Icons.arrow_right : Icons.arrow_drop_down)
-          : (bullet.title.isEmpty)
-              ? null //Like notebook description
-              : Icon(Icons.panorama_fish_eye, //plain bullets without children
-                  color: Colors.transparent),
+      collapsingArrow: _buildArrow(),
       description: (bullet.description.isNotEmpty && !isCollapsed)
           ? bullet.description
           : null,
@@ -72,5 +70,32 @@ class BulletContainer extends StatelessWidget {
                     margin: EdgeInsets.only(top: 2.5, bottom: 2.5),
                     color: getMainColor(this.bullet.level),
                     child: bulletTile))));
+  }
+
+  Icon _buildArrow() {
+    if (bullet.title.isEmpty) {
+      return null; //Like notebook description
+    }
+
+    Color color = Colors.black;
+    IconData data = Icons.cloud;
+
+    if (hasChildren) {
+      if (isCollapsed) {
+        data = Icons.arrow_right;
+      } else {
+        if (isLastExpanded) {
+          data = Icons.arrow_drop_down;
+          color = Colors.green;
+        } else {
+          data = Icons.arrow_drop_down;
+        }
+      }
+    } else {
+      //plain bullets without children
+      data = Icons.panorama_fish_eye;
+      color = Colors.transparent;
+    }
+    return Icon(data, color: color);
   }
 }

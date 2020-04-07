@@ -12,10 +12,17 @@ class BulletList extends StatefulWidget {
   List<Bullet> _bulletList;
   Function _onSave;
   Function _onUpdate;
+  Function(Bullet bullet) _onLastExpand;
 
-  BulletList({Function onSave, List<Bullet> bulletList, Function onUpdate}) {
+  BulletList(
+      {Function onSave,
+      List<Bullet> bulletList,
+      Function onUpdate,
+      Function(Bullet bullet) onLastExpand}) {
     this._bulletList = bulletList;
     this._onSave = onSave;
+    this._onUpdate = onUpdate;
+    this._onLastExpand = onLastExpand;
   }
 
   @override
@@ -68,6 +75,7 @@ class _BulletListState extends State<BulletList> {
         child: BulletContainer(
           bullet: bullet,
           isCollapsed: _isCollapsed(bullet),
+          isLastExpanded: (bullet == lastExpandedBullet),
           hasChildren: _hasChildren(bullet),
           checkedCheckboxRatio: _getCheckedCheckboxRatio(bullet),
           onTap: () {
@@ -196,11 +204,19 @@ class _BulletListState extends State<BulletList> {
 
   void _collapseBullet(Bullet root) {
     _getChildrenOfBullet(root).forEach((child) => child.isVisible = false);
-    setState(() {});
+    setState(() {
+      this.lastExpandedBullet = null;
+    });
+    this.widget._onLastExpand(null);
   }
 
   void _expandBullet(Bullet root) {
     _expandDirectChildren(root);
+    print("Expanding :: ${root.title}");
+    setState(() {
+      this.lastExpandedBullet = root;
+    });
+    this.widget._onLastExpand(root);
   }
 
   void _expandFromDocumentRoot() {
@@ -212,7 +228,6 @@ class _BulletListState extends State<BulletList> {
     _getDirectChildrenOfBullet(bullet).forEach((directChild) {
       directChild.isVisible = true;
     });
-    setState(() {});
   }
 
   void _moveBulletToEnd(Bullet bullet) {

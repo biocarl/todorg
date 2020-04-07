@@ -38,6 +38,7 @@ class AppState extends State<App> {
   String parentPath = ""; //Android only
 
   TopBarViewState topBarViewState = TopBarViewState.defaultState;
+  Bullet lastExpandedBullet;
 
   @override
   void initState() {
@@ -109,6 +110,8 @@ class AppState extends State<App> {
                       });
                     }),
                 onSave: _saveToFile,
+                onLastExpand: (Bullet bullet) =>
+                    _updateLastExpandedBullet(bullet),
                 bulletList: this.bulletList),
           )),
     );
@@ -237,7 +240,22 @@ class AppState extends State<App> {
           bulletEdited.title = bulletEdited.title.trim();
         }
 
-        bulletList.insert(0, bulletEdited);
+        if (lastExpandedBullet == null) {
+          bulletList.insert(0, bulletEdited);
+        } else {
+          // TODO Extract "finding last child position" to extra file (together with other hierarchy algorithms)
+          int indexOfParent = bulletList.indexOf(lastExpandedBullet);
+          int lastChildOfParent = indexOfParent;
+          while (lastChildOfParent + 1 < bulletList.length &&
+              bulletList[lastChildOfParent + 1].level >
+                  lastExpandedBullet.level) {
+            lastChildOfParent++;
+          }
+
+          // Inserts new bullet as last child of the last expanded bullet
+          bulletEdited.level = lastExpandedBullet.level + 1;
+          bulletList.insert(lastChildOfParent + 1, bulletEdited);
+        }
         this.needsUpdate = true;
       }
     });
@@ -312,5 +330,10 @@ class AppState extends State<App> {
       topBarViewState = TopBarViewState.defaultState;
       _parseFile();
     });
+  }
+
+  _updateLastExpandedBullet(Bullet bullet) {
+    // noSetState: State does not impact UI in this widget
+    lastExpandedBullet = bullet;
   }
 }
